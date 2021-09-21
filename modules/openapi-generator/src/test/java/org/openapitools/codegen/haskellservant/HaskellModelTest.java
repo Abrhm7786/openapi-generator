@@ -24,5 +24,6 @@ public class HaskellModelTest {
 
     @Test(description = "convert a haskell model with dots")
     public void modelTest() {
+        Assert.assertEquals(true, true);
     }
 }

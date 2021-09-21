@@ -26,7 +26,7 @@
     `{{{baseName}}}` = NULL,
     {{/vars}}
     initialize = function(
-        {{#requiredVars}}`{{baseName}}`, {{/requiredVars}}{{#optionalVars}}`{{baseName}}`={{{defaultValue}}}{{^defaultValue}}NULL{{/defaultValue}}, {{/optionalVars}}...
+        {{#requiredVars}}`{{baseName}}`, {{/requiredVars}}{{#optionalVars}}`{{baseName}}`={{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}NULL{{/defaultValue}}, {{/optionalVars}}...
     ) {
       local.optional.var <- list(...)
       {{#requiredVars}}
@@ -47,9 +47,6 @@
         {{#isString}}
         stopifnot(is.character(`{{baseName}}`), length(`{{baseName}}`) == 1)
         {{/isString}}
-        {{#isBoolean}}
-        stopifnot(is.logical(`{{baseName}}`), length(`{{baseName}}`) == 1)
-        {{/isBoolean}}
         {{#isDate}}
         stopifnot(is.character(`{{baseName}}`), length(`{{baseName}}`) == 1)
         {{/isDate}}
@@ -91,9 +88,6 @@
         {{#isString}}
         stopifnot(is.character(`{{baseName}}`), length(`{{baseName}}`) == 1)
         {{/isString}}
-        {{#isBoolean}}
-        stopifnot(is.logical(`{{baseName}}`), length(`{{baseName}}`) == 1)
-        {{/isBoolean}}
         {{#isDate}}
         stopifnot(is.character(`{{baseName}}`), length(`{{baseName}}`) == 1)
         {{/isDate}}
@@ -191,7 +185,7 @@
         {{/isArray}}
         {{#isMap}}
         {{#isPrimitiveType}}
-          {{#isNumeric}}%d{{/isNumeric}}{{^isNumeric}}{{^isBoolean}}"{{/isBoolean}}%s{{^isBoolean}}"{{/isBoolean}}{{/isNumeric}}
+          {{#isNumeric}}%d{{/isNumeric}}{{^isNumeric}}"%s"{{/isNumeric}}
         {{/isPrimitiveType}}
         {{^isPrimitiveType}}%s
         {{/isPrimitiveType}}
@@ -199,7 +193,7 @@
         {{/isContainer}}
         {{^isContainer}}
         {{#isPrimitiveType}}
-          {{#isNumeric}}%d{{/isNumeric}}{{^isNumeric}}{{^isBoolean}}"{{/isBoolean}}%s{{^isBoolean}}"{{/isBoolean}}{{/isNumeric}}
+          {{#isNumeric}}%d{{/isNumeric}}{{^isNumeric}}"%s"{{/isNumeric}}
         {{/isPrimitiveType}}
         {{^isPrimitiveType}}%s
         {{/isPrimitiveType}}
@@ -224,7 +218,7 @@
         {{/isContainer}}
         {{^isContainer}}
         {{#isPrimitiveType}}
-        {{#isBoolean}}tolower({{/isBoolean}}self$`{{baseName}}`{{#isBoolean}}){{/isBoolean}}
+        self$`{{baseName}}`
         {{/isPrimitiveType}}
         {{^isPrimitiveType}}
         jsonlite::toJSON(self$`{{baseName}}`$toJSON(), auto_unbox=TRUE, digits = NA)
@@ -259,3 +253,4 @@
 {{/isEnum}}
 {{/model}}
 {{/models}}
+

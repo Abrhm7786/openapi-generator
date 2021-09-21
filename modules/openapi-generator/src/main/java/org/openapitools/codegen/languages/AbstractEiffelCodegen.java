@@ -134,7 +134,7 @@ public abstract class AbstractEiffelCodegen extends DefaultCodegen implements Co
         // replace - with _ e.g. created-at => created_at
         name = sanitizeName(name.replaceAll("-", "_"));
 
-        // if it's all upper case, do nothing
+        // if it's all uppper case, do nothing
         if (name.matches("^[A-Z_]*$")) {
             return name;
         }
@@ -192,22 +192,22 @@ public abstract class AbstractEiffelCodegen extends DefaultCodegen implements Co
 
         // model name cannot use reserved keyword, e.g. return
         if (isReservedWord(name)) {
-            LOGGER.warn("{} (reserved word) cannot be used as model name. Renamed to {}", name, "model_" + name);
+            LOGGER.warn(name + " (reserved word) cannot be used as model name. Renamed to " + ("model_" + name));
             name = "model_" + name; // e.g. return => ModelReturn (after
             // camelize)
         }
 
         // model name starts with number
         if (name.matches("^\\d.*")) {
-            LOGGER.warn("{} (model name starts with number) cannot be used as model name. Renamed to {}", name,
-                    "model_" + name);
+            LOGGER.warn(name + " (model name starts with number) cannot be used as model name. Renamed to "
+                    + ("model_" + name));
             name = "model_" + name; // e.g. 200Response => Model200Response
             // (after camelize)
         }
         // model name starts with _
         if (name.startsWith("_")) {
-            LOGGER.warn("{} (model name starts with _) cannot be used as model name. Renamed to {}", name,
-                    "model" + name);
+            LOGGER.warn(name + " (model name starts with _) cannot be used as model name. Renamed to "
+                    + ("model" + name));
             name = "model" + name; // e.g. 200Response => Model200Response
             // (after camelize)
         }
@@ -304,32 +304,32 @@ public abstract class AbstractEiffelCodegen extends DefaultCodegen implements Co
 
         // Not using the supertype invocation, because we want to UpperCamelize
         // the type.
-        String schemaType = getSchemaType(p);
-        if (typeMapping.containsKey(schemaType)) {
-            return typeMapping.get(schemaType);
+        String scheamType = getSchemaType(p);
+        if (typeMapping.containsKey(scheamType)) {
+            return typeMapping.get(scheamType);
         }
 
-        if (typeMapping.containsValue(schemaType)) {
-            return schemaType;
+        if (typeMapping.containsValue(scheamType)) {
+            return scheamType;
         }
 
-        if (languageSpecificPrimitives.contains(schemaType)) {
-            return schemaType;
+        if (languageSpecificPrimitives.contains(scheamType)) {
+            return scheamType;
         }
 
-        return toModelName(schemaType);
+        return toModelName(scheamType);
     }
 
     @Override
     public String getSchemaType(Schema p) {
-        String schemaType = super.getSchemaType(p);
+        String scheamType = super.getSchemaType(p);
         String type = null;
-        if (typeMapping.containsKey(schemaType)) {
-            type = typeMapping.get(schemaType);
+        if (typeMapping.containsKey(scheamType)) {
+            type = typeMapping.get(scheamType);
             if (languageSpecificPrimitives.contains(type))
                 return (type);
         } else
-            type = schemaType;
+            type = scheamType;
         return type;
     }
 
@@ -344,7 +344,8 @@ public abstract class AbstractEiffelCodegen extends DefaultCodegen implements Co
 
         // method name cannot use reserved keyword, e.g. return
         if (isReservedWord(sanitizedOperationId)) {
-            LOGGER.warn("{} (reserved word) cannot be used as method name. Renamed to {}", operationId, camelize("call_" + operationId));
+            LOGGER.warn(operationId + " (reserved word) cannot be used as method name. Renamed to "
+                    + camelize("call_" + operationId));
             sanitizedOperationId = "call_" + sanitizedOperationId;
         }
 
@@ -518,15 +519,15 @@ public abstract class AbstractEiffelCodegen extends DefaultCodegen implements Co
 
         // Iterate over all of the parent model properties
         boolean removedChildEnum = false;
-        for (CodegenProperty parentModelCodegenProperty : parentModelCodegenProperties) {
+        for (CodegenProperty parentModelCodegenPropery : parentModelCodegenProperties) {
             // Look for enums
-            if (parentModelCodegenProperty.isEnum) {
+            if (parentModelCodegenPropery.isEnum) {
                 // Now that we have found an enum in the parent class,
                 // and search the child class for the same enum.
                 Iterator<CodegenProperty> iterator = codegenProperties.iterator();
                 while (iterator.hasNext()) {
                     CodegenProperty codegenProperty = iterator.next();
-                    if (codegenProperty.isEnum && codegenProperty.equals(parentModelCodegenProperty)) {
+                    if (codegenProperty.isEnum && codegenProperty.equals(parentModelCodegenPropery)) {
                         // We found an enum in the child class that is
                         // a duplicate of the one in the parent, so remove it.
                         iterator.remove();
@@ -608,7 +609,7 @@ public abstract class AbstractEiffelCodegen extends DefaultCodegen implements Co
     @Override
     protected void updatePropertyForArray(CodegenProperty property, CodegenProperty innerProperty) {
         if (innerProperty == null) {
-            LOGGER.warn("skipping invalid array property {}", Json.pretty(property));
+            LOGGER.warn("skipping invalid array property " + Json.pretty(property));
             return;
         }
         property.dataFormat = innerProperty.dataFormat;

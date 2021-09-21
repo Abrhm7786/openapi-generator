@@ -100,7 +100,7 @@ private var urlSessionStore = SynchronizedDictionary<String, URLSession>()
         urlSessionStore[urlSessionId] = urlSession
 
         guard let xMethod = HTTPMethod(rawValue: method) else {
-            fatalError("Unsupported Http method - \(method)")
+            fatalError("Unsuported Http method - \(method)")
         }
 
         let encoding: ParameterEncoding
@@ -119,7 +119,7 @@ private var urlSessionStore = SynchronizedDictionary<String, URLSession>()
             } else if contentType == "application/x-www-form-urlencoded" {
                 encoding = FormURLEncoding()
             } else {
-                fatalError("Unsupported Media Type - \(contentType)")
+                fatalError("Unsuported Media Type - \(contentType)")
             }
         }
 
@@ -205,18 +205,16 @@ private var urlSessionStore = SynchronizedDictionary<String, URLSession>()
                 }
 
                 let fileManager = FileManager.default
-                let cachesDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+                let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
                 let requestURL = try getURL(from: urlRequest)
 
                 var requestPath = try getPath(from: requestURL)
 
                 if let headerFileName = getFileName(fromContentDisposition: httpResponse.allHeaderFields["Content-Disposition"] as? String) {
                     requestPath = requestPath.appending("/\(headerFileName)")
-                } else {
-                    requestPath = requestPath.appending("/tmp.{{projectName}}.\(UUID().uuidString)")
                 }
 
-                let filePath = cachesDirectory.appendingPathComponent(requestPath)
+                let filePath = documentsDirectory.appendingPathComponent(requestPath)
                 let directoryPath = filePath.deletingLastPathComponent().path
 
                 try fileManager.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
@@ -233,10 +231,6 @@ private var urlSessionStore = SynchronizedDictionary<String, URLSession>()
         case is Void.Type:
 
             completion(.success(Response(response: httpResponse, body: nil)))
-
-        case is Data.Type:
-
-            completion(.success(Response(response: httpResponse, body: data as? T)))
 
         default:
 
@@ -270,7 +264,7 @@ private var urlSessionStore = SynchronizedDictionary<String, URLSession>()
 
             let filenameKey = "filename="
             guard let range = contentItem.range(of: filenameKey) else {
-                continue
+                break
             }
 
             filename = contentItem
@@ -333,43 +327,6 @@ private var urlSessionStore = SynchronizedDictionary<String, URLSession>()
             let body = data.flatMap { String(data: $0, encoding: .utf8) } ?? ""
 
             completion(.success(Response<T>(response: httpResponse, body: body as? T)))
-
-        case is URL.Type:
-            do {
-
-                guard error == nil else {
-                    throw DownloadException.responseFailed
-                }
-
-                guard let data = data else {
-                    throw DownloadException.responseDataMissing
-                }
-
-                let fileManager = FileManager.default
-                let cachesDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-                let requestURL = try getURL(from: urlRequest)
-
-                var requestPath = try getPath(from: requestURL)
-
-                if let headerFileName = getFileName(fromContentDisposition: httpResponse.allHeaderFields["Content-Disposition"] as? String) {
-                    requestPath = requestPath.appending("/\(headerFileName)")
-                } else {
-                    requestPath = requestPath.appending("/tmp.{{projectName}}.\(UUID().uuidString)")
-                }
-
-                let filePath = cachesDirectory.appendingPathComponent(requestPath)
-                let directoryPath = filePath.deletingLastPathComponent().path
-
-                try fileManager.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
-                try data.write(to: filePath, options: .atomic)
-
-                completion(.success(Response(response: httpResponse, body: filePath as? T)))
-
-            } catch let requestParserError as DownloadException {
-                completion(.failure(ErrorResponse.error(400, data, response, requestParserError)))
-            } catch {
-                completion(.failure(ErrorResponse.error(400, data, response, error)))
-            }
 
         case is Void.Type:
 

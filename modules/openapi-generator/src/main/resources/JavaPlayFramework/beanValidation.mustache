@@ -2,7 +2,7 @@
 @NotNull
 {{/required}}
 {{#pattern}}
-@Pattern(regexp="{{{.}}}")
+@Pattern(regexp="{{{pattern}}}")
 {{/pattern}}
 {{#minLength}}
 {{#maxLength}}
@@ -16,7 +16,7 @@
 {{/minLength}}
 {{^minLength}}
 {{#maxLength}}
-@Size(max={{.}})
+@Size(max={{maxLength}})
 {{/maxLength}}
 {{/minLength}}
 {{#minItems}}
@@ -31,24 +31,24 @@
 {{/minItems}}
 {{^minItems}}
 {{#maxItems}}
-@Size(max={{.}})
+@Size(max={{maxItems}})
 {{/maxItems}}
 {{/minItems}}
 {{! check for integer / number=decimal type}}
 {{#isInteger}}
 {{#minimum}}
-@Min({{.}})
+@Min({{minimum}})
 {{/minimum}}
 {{#maximum}}
-@Max({{.}})
+@Max({{maximum}})
 {{/maximum}}
 {{/isInteger}}
 {{^isInteger}}
 {{#minimum}}
-@DecimalMin("{{.}}")
+@DecimalMin("{{minimum}}")
 {{/minimum}}
 {{#maximum}}
-@DecimalMax("{{.}}")
+@DecimalMax("{{maximum}}")
 {{/maximum}}
 {{/isInteger}}
 {{^isPrimitiveType}}

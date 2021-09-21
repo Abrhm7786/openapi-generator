@@ -6,44 +6,17 @@ import (
 	"net/http"
 	"strings"
 
-{{#routers}}
-	{{#mux}}
 	"github.com/gorilla/mux"
-	{{/mux}}
-	{{#chi}}
-	"github.com/go-chi/chi/v5"
-	{{/chi}}
-{{/routers}}
 )
 
-// {{classname}}Controller binds http requests to an api service and writes the service results to the http response
+// A {{classname}}Controller binds http requests to an api service and writes the service results to the http response
 type {{classname}}Controller struct {
 	service {{classname}}Servicer
-	errorHandler ErrorHandler
-}
-
-// {{classname}}Option for how the controller is set up.
-type {{classname}}Option func(*{{classname}}Controller)
-
-// With{{classname}}ErrorHandler inject ErrorHandler into controller
-func With{{classname}}ErrorHandler(h ErrorHandler) {{classname}}Option {
-	return func(c *{{classname}}Controller) {
-		c.errorHandler = h
-	}
 }
 
 // New{{classname}}Controller creates a default api controller
-func New{{classname}}Controller(s {{classname}}Servicer, opts ...{{classname}}Option) Router {
-	controller := &{{classname}}Controller{
-		service:      s,
-		errorHandler: DefaultErrorHandler,
-	}
-
-	for _, opt := range opts {
-		opt(controller)
-	}
-
-	return controller
+func New{{classname}}Controller(s {{classname}}Servicer) Router {
+	return &{{classname}}Controller{service: s}
 }
 
 // Routes returns all of the api route for the {{classname}}Controller
@@ -59,72 +32,65 @@ func (c *{{classname}}Controller) Routes() Routes {
 }{{#operations}}{{#operation}}
 
 // {{nickname}} - {{{summary}}}
-{{#isDeprecated}}
-// Deprecated
-{{/isDeprecated}}
 func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Request) {
 	{{#hasFormParams}}
 	{{#isMultipart}}
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isMultipart}}
 	{{^isMultipart}}
 	if err := r.ParseForm(); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isMultipart}}
 	{{/hasFormParams}}
-	{{#routers}}
-		{{#mux}}
-			{{#hasPathParams}}
+	{{#hasPathParams}}
 	params := mux.Vars(r)
-			{{/hasPathParams}}
-		{{/mux}}
-	{{/routers}}
+	{{/hasPathParams}}
 	{{#hasQueryParams}}
 	query := r.URL.Query()
 	{{/hasQueryParams}}
 	{{#allParams}}
 	{{#isPathParam}}
 	{{#isLong}}
-	{{paramName}}Param, err := parseInt64Parameter({{#routers}}{{#mux}}params["{{baseName}}"]{{/mux}}{{#chi}}chi.URLParam(r, "{{baseName}}"){{/chi}}{{/routers}}, {{required}})
+	{{paramName}}, err := parseInt64Parameter(params["{{baseName}}"], {{required}})
 	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isLong}}
 	{{#isInteger}}
-	{{paramName}}Param, err := parseInt32Parameter({{#routers}}{{#mux}}params["{{baseName}}"]{{/mux}}{{#chi}}chi.URLParam(r, "{{baseName}}"){{/chi}}{{/routers}}, {{required}})
+	{{paramName}}, err := parseInt32Parameter(params["{{baseName}}"], {{required}})
 	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isInteger}}
 	{{^isLong}}
 	{{^isInteger}}
-	{{paramName}}Param := {{#routers}}{{#mux}}params["{{baseName}}"]{{/mux}}{{#chi}}chi.URLParam(r, "{{baseName}}"){{/chi}}{{/routers}}
+	{{paramName}} := params["{{baseName}}"]
 	{{/isInteger}}{{/isLong}}
 	{{/isPathParam}}
 	{{#isQueryParam}}
 	{{#isLong}}
-	{{paramName}}Param, err := parseInt64Parameter(query.Get("{{baseName}}"), {{required}})
+	{{paramName}}, err := parseInt64Parameter(query.Get("{{baseName}}"), {{required}})
 	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isLong}}
 	{{#isInteger}}
-	{{paramName}}Param, err := parseInt32Parameter(query.Get("{{baseName}}"), {{required}})
+	{{paramName}}, err := parseInt32Parameter(query.Get("{{baseName}}"), {{required}})
 	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isInteger}}
 	{{#isBoolean}}
-	{{paramName}}Param, err := parseBoolParameter(query.Get("{{baseName}}"))
+	{{paramName}}, err := parseBoolParameter(query.Get("{{paramName}}"))
 	if err != nil {
 		w.WriteHeader(500)
 		return
@@ -133,80 +99,58 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{^isLong}}
 	{{^isInteger}}
 	{{^isBoolean}}
-	{{paramName}}Param := {{#isArray}}strings.Split({{/isArray}}query.Get("{{baseName}}"){{#isArray}}, ","){{/isArray}}
+	{{paramName}} := {{#isArray}}strings.Split({{/isArray}}query.Get("{{paramName}}"){{#isArray}}, ","){{/isArray}}
 	{{/isBoolean}}
 	{{/isInteger}}
 	{{/isLong}}
 	{{/isQueryParam}}
 	{{#isFormParam}}
 	{{#isFile}}{{#isArray}}
-	{{paramName}}Param, err := ReadFormFilesToTempFiles(r, "{{baseName}}"){{/isArray}}{{^isArray}}
-	{{paramName}}Param, err := ReadFormFileToTempFile(r, "{{baseName}}")
+	{{paramName}}, err := ReadFormFilesToTempFiles(r, "{{baseName}}"){{/isArray}}{{^isArray}}
+	{{paramName}}, err := ReadFormFileToTempFile(r, "{{baseName}}")
 	{{/isArray}}
 	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isFile}}
 	{{#isLong}}{{#isArray}}
-	{{paramName}}Param, err := parseInt64ArrayParameter(r.FormValue("{{baseName}}"), ",", {{required}}){{/isArray}}{{^isArray}}
-	{{paramName}}Param, err := parseInt64Parameter(r.FormValue("{{baseName}}"), {{required}}){{/isArray}}
+	{{paramName}}, err := parseInt64ArrayParameter(r.FormValue("{{baseName}}"), ",", {{required}}){{/isArray}}{{^isArray}}
+	{{paramName}}, err := parseInt64Parameter(r.FormValue("{{baseName}}"), {{required}}){{/isArray}}
 	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isLong}}
 	{{#isInteger}}{{#isArray}}
-	{{paramName}}Param, err := parseInt32ArrayParameter(r.FormValue("{{baseName}}"), ",", {{required}}){{/isArray}}{{^isArray}}
-	{{paramName}}Param, err := parseInt32Parameter(r.FormValue("{{baseName}}"), {{required}}){{/isArray}}
+	{{paramName}}, err := parseInt32ArrayParameter(r.FormValue("{{baseName}}"), ",", {{required}}){{/isArray}}{{^isArray}}
+	{{paramName}}, err := parseInt32Parameter(r.FormValue("{{baseName}}"), {{required}}){{/isArray}}
 	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	{{/isInteger}}
 	{{^isFile}}
 	{{^isLong}}
-	{{paramName}}Param := r.FormValue("{{baseName}}")
+	{{paramName}} := r.FormValue("{{baseName}}")
 	{{/isLong}}
 	{{/isFile}}
 	{{/isFormParam}}
 	{{#isHeaderParam}}
-	{{paramName}}Param := r.Header.Get("{{baseName}}")
+	{{paramName}} := r.Header.Get("{{baseName}}")
 	{{/isHeaderParam}}
 	{{#isBodyParam}}
-	{{paramName}}Param := {{dataType}}{}
-	d := json.NewDecoder(r.Body)
-	{{^isAdditionalPropertiesTrue}}
-	d.DisallowUnknownFields()
-	{{/isAdditionalPropertiesTrue}}
-	if err := d.Decode(&{{paramName}}Param); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+	{{paramName}} := &{{dataType}}{}
+	if err := json.NewDecoder(r.Body).Decode(&{{paramName}}); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	{{#isArray}}
-		{{#items.isModel}}
-	for _, el := range {{paramName}}Param {
-		if err := Assert{{baseType}}Required(el); err != nil {
-			c.errorHandler(w, r, err, nil)
-			return
-		}
-	}
-		{{/items.isModel}}
-	{{/isArray}}
-	{{^isArray}}
-		{{#isModel}}
-	if err := Assert{{baseType}}Required({{paramName}}Param); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-		{{/isModel}}
-	{{/isArray}}
 	{{/isBodyParam}}
 	{{/allParams}}
-	result, err := c.service.{{nickname}}(r.Context(){{#allParams}}, {{paramName}}Param{{/allParams}})
+	result, err := c.service.{{nickname}}(r.Context(){{#allParams}}, {{#isBodyParam}}*{{/isBodyParam}}{{paramName}}{{/allParams}})
 	// If an error occurred, encode the error with the status code
 	if err != nil {
-		c.errorHandler(w, r, err, &result)
+		EncodeJSONResponse(err.Error(), &result.Code,{{#addResponseHeaders}} result.Headers,{{/addResponseHeaders}} w)
 		return
 	}
 	// If no error, encode the body and the result code

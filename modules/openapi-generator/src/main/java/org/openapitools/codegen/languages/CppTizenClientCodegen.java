@@ -319,7 +319,6 @@ public class CppTizenClientCodegen extends AbstractCppCodegen implements Codegen
      * @param name the name of the property
      * @return getter name based on naming convention
      */
-    @Override
     public String toBooleanGetter(String name) {
         return "get" + getterAndSetterCapitalize(name);
     }

@@ -30,7 +30,7 @@ public class EiffelClientCodegenTest {
         codegen.processOpts();
 
         Assert.assertEquals(codegen.additionalProperties().get(CodegenConstants.HIDE_GENERATION_TIMESTAMP), Boolean.TRUE);
-        Assert.assertTrue(codegen.isHideGenerationTimestamp());
+        Assert.assertEquals(codegen.isHideGenerationTimestamp(), true);
     }
 
     @Test
@@ -40,7 +40,7 @@ public class EiffelClientCodegenTest {
         codegen.processOpts();
 
         Assert.assertEquals(codegen.additionalProperties().get(CodegenConstants.HIDE_GENERATION_TIMESTAMP), Boolean.FALSE);
-        Assert.assertFalse(codegen.isHideGenerationTimestamp());
+        Assert.assertEquals(codegen.isHideGenerationTimestamp(), false);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class EiffelClientCodegenTest {
         codegen.processOpts();
 
         Assert.assertEquals(codegen.additionalProperties().get(CodegenConstants.HIDE_GENERATION_TIMESTAMP), Boolean.FALSE);
-        Assert.assertFalse(codegen.isHideGenerationTimestamp());
+        Assert.assertEquals(codegen.isHideGenerationTimestamp(), false);
     }
 
 }

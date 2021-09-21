@@ -21,13 +21,9 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.PathItem.HttpMethod;
-import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
-import io.swagger.v3.oas.models.parameters.RequestBody;
-import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.meta.features.*;
 import org.openapitools.codegen.utils.ModelUtils;
@@ -39,17 +35,12 @@ import java.util.*;
 
 public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
     private final Logger LOGGER = LoggerFactory.getLogger(PhpMezzioPathHandlerServerCodegen.class);
-    // Custom generator option names
-    public static final String OPT_MODERN = "modern";
-    // Internal vendor extension names for extra template data that should not be set in specification
+
+    // TODO: Rename to x- prefixed vendor extensions, per specification.
     public static final String VEN_FROM_QUERY = "internal.ze-ph.fromQuery";
     public static final String VEN_COLLECTION_FORMAT = "internal.ze-ph.collectionFormat";
     public static final String VEN_QUERY_DATA_TYPE = "internal.ze-ph.queryDataType";
     public static final String VEN_HAS_QUERY_DATA = "internal.ze-ph.hasQueryData";
-    public static final String VEN_FROM_CONTAINER = "internal.ze-ph.fromContainer";
-    public static final String VEN_CONTAINER_DATA_TYPE = "internal.ze-ph.containerDataType";
-
-    private boolean useModernSyntax = false;
 
     @Override
     public CodegenType getTag() {
@@ -94,8 +85,6 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
         modelDirName = "DTO";
         apiPackage = invokerPackage + "\\" + apiDirName;
         modelPackage = invokerPackage + "\\" + modelDirName;
-        //"Api" classes have dedicated namespace so there is no need to add non-empty suffix by default
-        apiNameSuffix = "";
 
         apiTestTemplateFiles.clear();
         modelTestTemplateFiles.clear();
@@ -114,17 +103,6 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
         supportingFiles.add(new SupportingFile("InternalServerError.php.mustache", srcBasePath + File.separator + "Middleware", "InternalServerError.php"));
 
         additionalProperties.put(CodegenConstants.ARTIFACT_VERSION, "1.0.0");
-        //Register custom CLI options
-        addSwitch(OPT_MODERN, "use modern language features (generated code will require PHP 8.0)", useModernSyntax);
-    }
-
-    @Override
-    public void processOpts() {
-        super.processOpts();
-        if (additionalProperties.containsKey(OPT_MODERN)) {
-            embeddedTemplateDir = templateDir = "php-mezzio-ph-modern";
-            useModernSyntax = true;
-        }
     }
 
     /**
@@ -158,31 +136,29 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
         }
     }
 
+    /**
+     * Return the file name of the Api Test
+     *
+     * @param name the file name of the Api
+     * @return the file name of the Api
+     */
+    @Override
+    public String toApiFilename(String name) {
+        return toApiName(name);
+    }
+
+    /**
+     * Output the API (class) name (capitalized) ending with "Api"
+     * Return DefaultApi if name is empty
+     *
+     * @param name the name of the Api
+     * @return capitalized Api name ending with "Api"
+     */
     @Override
     public String toApiName(String name) {
-        return super.toApiName(toModelName(name));
-    }
-
-    @Override
-    public String getTypeDeclaration(Schema p) {
-        String result;
-        Map<String, Object> extensions = p.getExtensions();
-        if ((extensions != null) && extensions.containsKey(VEN_CONTAINER_DATA_TYPE)) {
-            result = (String) extensions.get(VEN_CONTAINER_DATA_TYPE);
-        } else if (useModernSyntax && (ModelUtils.isArraySchema(p) || ModelUtils.isMapSchema(p))) {
-            result = "array";
-        } else {
-            result = super.getTypeDeclaration(p);
-        }
-        return result;
-    }
-
-    @Override
-    public void preprocessOpenAPI(OpenAPI openAPI) {
-        super.preprocessOpenAPI(openAPI);
-
-        generateParameterSchemas(openAPI);
-        generateContainerSchemas(openAPI);
+        //Remove }
+        name = name.replaceAll("[\\}]", "");
+        return super.toModelName(name);
     }
 
     /**
@@ -190,7 +166,10 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
      *
      * @param openAPI OpenAPI object
      */
-    protected void generateParameterSchemas(OpenAPI openAPI) {
+    @Override
+    public void preprocessOpenAPI(OpenAPI openAPI) {
+        super.preprocessOpenAPI(openAPI);
+
         Map<String, PathItem> paths = openAPI.getPaths();
         if (paths != null) {
             for (String pathname : paths.keySet()) {
@@ -199,34 +178,34 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
                 if (operationMap != null) {
                     for (HttpMethod method : operationMap.keySet()) {
                         Operation operation = operationMap.get(method);
-                        Map<String, Schema> propertySchemas = new HashMap<>();
+                        Map<String, Schema> schemas = new HashMap<>();
                         if (operation == null || operation.getParameters() == null) {
                             continue;
                         }
 
                         List<String> requiredProperties = new ArrayList<>();
                         for (Parameter parameter : operation.getParameters()) {
-                            Parameter referencedParameter = ModelUtils.getReferencedParameter(openAPI, parameter);
-                            Schema propertySchema = convertParameterToSchema(openAPI, referencedParameter);
-                            if (propertySchema != null) {
-                                propertySchemas.put(propertySchema.getName(), propertySchema);
-                                if (Boolean.TRUE.equals(referencedParameter.getRequired())) {
-                                    requiredProperties.add(propertySchema.getName());
+                            Schema schema = convertParameterToSchema(parameter);
+                            if (schema != null) {
+                                schemas.put(schema.getName(), schema);
+                                if (Boolean.TRUE.equals(parameter.getRequired())) {
+                                    requiredProperties.add(schema.getName());
                                 }
                             }
                         }
 
-                        if (!propertySchemas.isEmpty()) {
-                            ObjectSchema schema = new ObjectSchema();
+                        if (!schemas.isEmpty()) {
+                            ObjectSchema model = new ObjectSchema();
                             String operationId = getOrGenerateOperationId(operation, pathname, method.name());
-                            schema.setDescription("Query parameters for " + operationId);
-                            schema.setProperties(propertySchemas);
-                            schema.setRequired(requiredProperties);
-                            addInternalExtensionToSchema(schema, VEN_FROM_QUERY, Boolean.TRUE);
-                            String schemaName = generateUniqueSchemaName(openAPI, operationId + "QueryData");
-                            openAPI.getComponents().addSchemas(schemaName, schema);
-                            String schemaDataType = getTypeDeclaration(toModelName(schemaName));
-                            addInternalExtensionToOperation(operation, VEN_QUERY_DATA_TYPE, schemaDataType);
+                            model.setDescription("Query parameters for " + operationId);
+                            model.setProperties(schemas);
+                            model.setRequired(requiredProperties);
+                            //Add internal extension directly, because addExtension filters extension names
+                            addInternalExtensionToSchema(model, VEN_FROM_QUERY, Boolean.TRUE);
+                            String definitionName = generateUniqueDefinitionName(operationId + "QueryData", openAPI);
+                            openAPI.getComponents().addSchemas(definitionName, model);
+                            String definitionModel = "\\" + modelPackage + "\\" + toModelName(definitionName);
+                            addInternalExtensionToOperation(operation, VEN_QUERY_DATA_TYPE, definitionModel);
                             addInternalExtensionToOperation(operation, VEN_HAS_QUERY_DATA, Boolean.TRUE);
                         }
                     }
@@ -235,18 +214,17 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
         }
     }
 
-    protected Schema convertParameterToSchema(OpenAPI openAPI, Parameter parameter) {
+    protected Schema convertParameterToSchema(Parameter parameter) {
         Schema property = null;
         if (parameter instanceof QueryParameter) {
             QueryParameter queryParameter = (QueryParameter) parameter;
-            Schema parameterSchema = ModelUtils.getReferencedSchema(openAPI, queryParameter.getSchema());
             // array
-            if (ModelUtils.isArraySchema(parameterSchema)) {
-                Schema itemSchema = ((ArraySchema) parameterSchema).getItems();
+            if (ModelUtils.isArraySchema(queryParameter.getSchema())) {
+                Schema inner = ((ArraySchema) queryParameter.getSchema()).getItems();
                 ArraySchema arraySchema = new ArraySchema();
-                arraySchema.setMinItems(parameterSchema.getMinItems());
-                arraySchema.setMaxItems(parameterSchema.getMaxItems());
-                arraySchema.setItems(itemSchema);
+                arraySchema.setMinItems(queryParameter.getSchema().getMinItems());
+                arraySchema.setMaxItems(queryParameter.getSchema().getMaxItems());
+                arraySchema.setItems(inner);
                 String collectionFormat = getCollectionFormat(queryParameter);
                 if (collectionFormat == null) {
                     collectionFormat = "csv";
@@ -254,25 +232,25 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
                 addInternalExtensionToSchema(arraySchema, VEN_COLLECTION_FORMAT, collectionFormat);
                 property = arraySchema;
             } else { // non-array e.g. string, integer
-                switch (parameterSchema.getType()) {
+                switch (queryParameter.getSchema().getType()) {
                     case "string":
                         StringSchema stringSchema = new StringSchema();
-                        stringSchema.setMinLength(parameterSchema.getMinLength());
-                        stringSchema.setMaxLength(parameterSchema.getMaxLength());
-                        stringSchema.setPattern(parameterSchema.getPattern());
-                        stringSchema.setEnum(parameterSchema.getEnum());
+                        stringSchema.setMinLength(queryParameter.getSchema().getMinLength());
+                        stringSchema.setMaxLength(queryParameter.getSchema().getMaxLength());
+                        stringSchema.setPattern(queryParameter.getSchema().getPattern());
+                        stringSchema.setEnum(queryParameter.getSchema().getEnum());
                         property = stringSchema;
                         break;
                     case "integer":
                         IntegerSchema integerSchema = new IntegerSchema();
-                        integerSchema.setMinimum(parameterSchema.getMinimum());
-                        integerSchema.setMaximum(parameterSchema.getMaximum());
+                        integerSchema.setMinimum(queryParameter.getSchema().getMinimum());
+                        integerSchema.setMaximum(queryParameter.getSchema().getMaximum());
                         property = integerSchema;
                         break;
                     case "number":
                         NumberSchema floatSchema = new NumberSchema();
-                        floatSchema.setMinimum(parameterSchema.getMinimum());
-                        floatSchema.setMaximum(parameterSchema.getMaximum());
+                        floatSchema.setMinimum(queryParameter.getSchema().getMinimum());
+                        floatSchema.setMaximum(queryParameter.getSchema().getMaximum());
                         property = floatSchema;
                         break;
                     case "boolean":
@@ -286,7 +264,6 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
                         break;
                 }
             }
-
             if (property != null) {
                 property.setName(queryParameter.getName());
                 property.setDescription(queryParameter.getDescription());
@@ -312,7 +289,7 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
         operation.getExtensions().put(name, value);
     }
 
-    protected String generateUniqueSchemaName(OpenAPI openAPI, String name) {
+    protected String generateUniqueDefinitionName(String name, OpenAPI openAPI) {
         String result = name;
         if (openAPI.getComponents().getSchemas() != null) {
             int count = 1;
@@ -322,90 +299,6 @@ public class PhpMezzioPathHandlerServerCodegen extends AbstractPhpCodegen {
             }
         }
         return result;
-    }
-
-    /**
-     * Generate additional model definitions for containers in whole specification
-     *
-     * @param openAPI OpenAPI object
-     */
-    protected void generateContainerSchemas(OpenAPI openAPI) {
-        Paths paths = openAPI.getPaths();
-        for (String pathName : paths.keySet()) {
-            for (Operation operation : paths.get(pathName).readOperations()) {
-                List<Parameter> parameters = operation.getParameters();
-                if (parameters != null) {
-                    for (Parameter parameter : parameters) {
-                        generateContainerSchemas(openAPI, ModelUtils.getReferencedParameter(openAPI, parameter).getSchema());
-                    }
-                }
-                RequestBody requestBody = ModelUtils.getReferencedRequestBody(openAPI, operation.getRequestBody());
-                if (requestBody != null) {
-                    Content requestBodyContent = requestBody.getContent();
-                    if (requestBodyContent != null) {
-                        for (String mediaTypeName : requestBodyContent.keySet()) {
-                            generateContainerSchemas(openAPI, requestBodyContent.get(mediaTypeName).getSchema());
-                        }
-                    }
-                }
-                ApiResponses responses = operation.getResponses();
-                for (String responseCode : responses.keySet()) {
-                    ApiResponse response = ModelUtils.getReferencedApiResponse(openAPI, responses.get(responseCode));
-                    Content responseContent = response.getContent();
-                    if (responseContent != null) {
-                        for (String mediaTypeName : responseContent.keySet()) {
-                            generateContainerSchemas(openAPI, responseContent.get(mediaTypeName).getSchema());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Generate additional model definitions for containers in specified schema
-     *
-     * @param openAPI OpenAPI object
-     * @param schema OAS schema to process
-     */
-    protected void generateContainerSchemas(OpenAPI openAPI, Schema schema) {
-        if (schema != null) {
-            //Dereference schema
-            schema = ModelUtils.getReferencedSchema(openAPI, schema);
-            Boolean isContainer = Boolean.FALSE;
-
-            if (ModelUtils.isObjectSchema(schema)) {
-                //Recursively process all schemas of object properties
-                Map<String, Schema> properties = schema.getProperties();
-                if (properties != null) {
-                    for (String propertyName: properties.keySet()) {
-                        generateContainerSchemas(openAPI, properties.get(propertyName));
-                    }
-                }
-            } else if (ModelUtils.isArraySchema(schema)) {
-                //Recursively process schema of array items
-                generateContainerSchemas(openAPI, ((ArraySchema) schema).getItems());
-                isContainer = Boolean.TRUE;
-            } else if (ModelUtils.isMapSchema(schema)) {
-                //Recursively process schema of map items
-                Object itemSchema = schema.getAdditionalProperties();
-                if (itemSchema instanceof Schema) {
-                    generateContainerSchemas(openAPI, (Schema) itemSchema);
-                }
-                isContainer = Boolean.TRUE;
-            }
-
-            if (isContainer) {
-                //Generate special component schema for container
-                String containerSchemaName = generateUniqueSchemaName(openAPI, "Collection");
-                Schema containerSchema = new ObjectSchema();
-                containerSchema.addProperties("inner", schema);
-                addInternalExtensionToSchema(containerSchema, VEN_FROM_CONTAINER, Boolean.TRUE);
-                openAPI.getComponents().addSchemas(containerSchemaName, containerSchema);
-                String containerDataType = getTypeDeclaration(toModelName(containerSchemaName));
-                addInternalExtensionToSchema(schema, VEN_CONTAINER_DATA_TYPE, containerDataType);
-            }
-        }
     }
 
     @Override

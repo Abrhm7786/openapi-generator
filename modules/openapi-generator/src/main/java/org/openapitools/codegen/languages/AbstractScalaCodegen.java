@@ -73,15 +73,13 @@ public abstract class AbstractScalaCodegen extends DefaultCodegen {
                 "List",
                 "Seq",
                 "Map",
-                "Array",
-                "Byte"));
+                "Array"));
 
         reservedWords.addAll(Arrays.asList(
                 "abstract",
                 "case",
                 "catch",
                 "class",
-                "clone",
                 "def",
                 "do",
                 "else",
@@ -118,10 +116,6 @@ public abstract class AbstractScalaCodegen extends DefaultCodegen {
                 "with",
                 "yield"
         ));
-
-        // Scala specific openApi types mapping
-        typeMapping.put("ByteArray", "Array[Byte]");
-
 
         importMapping = new HashMap<String, String>();
         importMapping.put("ListBuffer", "scala.collection.mutable.ListBuffer");
@@ -168,10 +162,6 @@ public abstract class AbstractScalaCodegen extends DefaultCodegen {
         if (StringUtils.isEmpty(System.getenv("SCALA_POST_PROCESS_FILE"))) {
             LOGGER.info("Environment variable SCALA_POST_PROCESS_FILE not defined so the Scala code may not be properly formatted. To define it, try 'export SCALA_POST_PROCESS_FILE=/usr/local/bin/scalafmt' (Linux/Mac)");
             LOGGER.info("NOTE: To enable file post-processing, 'enablePostProcessFile' must be set to `true` (--enable-post-process-file for CLI).");
-        }
-
-        if (additionalProperties.containsKey(CodegenConstants.INVOKER_PACKAGE)) {
-            this.setInvokerPackage((String) additionalProperties.get(CodegenConstants.INVOKER_PACKAGE));
         }
 
         if (additionalProperties.containsKey(CodegenConstants.SOURCE_FOLDER)) {
@@ -250,7 +240,7 @@ public abstract class AbstractScalaCodegen extends DefaultCodegen {
             varName = "_u";
         }
 
-        // if it's all upper case, do nothing
+        // if it's all uppper case, do nothing
         if (!varName.matches("^[A-Z_0-9]*$")) {
             varName = getNameUsingModelPropertyNaming(varName);
         }
@@ -349,11 +339,17 @@ public abstract class AbstractScalaCodegen extends DefaultCodegen {
         if (ModelUtils.isSet(p)) {
             openAPIType = "set";
         }
-        // don't apply renaming on types from the typeMapping
+
+        String type;
         if (typeMapping.containsKey(openAPIType)) {
-            return typeMapping.get(openAPIType);
+            type = typeMapping.get(openAPIType);
+            if (languageSpecificPrimitives.contains(type)) {
+                return toModelName(type);
+            }
+        } else {
+            type = openAPIType;
         }
-        return toModelName(openAPIType);
+        return toModelName(type);
     }
 
     @Override
@@ -465,15 +461,14 @@ public abstract class AbstractScalaCodegen extends DefaultCodegen {
         // model name cannot use reserved keyword, e.g. return
         if (isReservedWord(camelizedName)) {
             final String modelName = "Model" + camelizedName;
-            LOGGER.warn("{} (reserved word) cannot be used as model name. Renamed to {}", camelizedName, modelName);
+            LOGGER.warn(camelizedName + " (reserved word) cannot be used as model name. Renamed to " + modelName);
             return modelName;
         }
 
         // model name starts with number
         if (name.matches("^\\d.*")) {
             final String modelName = "Model" + camelizedName; // e.g. 200Response => Model200Response (after camelize)
-            LOGGER.warn("{} (model name starts with number) cannot be used as model name. Renamed to {}", name,
-                    modelName);
+            LOGGER.warn(name + " (model name starts with number) cannot be used as model name. Renamed to " + modelName);
             return modelName;
         }
 
@@ -536,7 +531,7 @@ public abstract class AbstractScalaCodegen extends DefaultCodegen {
                 if (exitValue != 0) {
                     LOGGER.error("Error running the command ({}). Exit value: {}", command, exitValue);
                 } else {
-                    LOGGER.info("Successfully executed: {}", command);
+                    LOGGER.info("Successfully executed: " + command);
                 }
             } catch (InterruptedException | IOException e) {
                 LOGGER.error("Error running the command ({}). Exception: {}", command, e.getMessage());
@@ -558,7 +553,7 @@ public abstract class AbstractScalaCodegen extends DefaultCodegen {
         // method name cannot use reserved keyword, e.g. return
         if (isReservedWord(operationId)) {
             String newOperationId = camelize("call_" + operationId, true);
-            LOGGER.warn("{} (reserved word) cannot be used as method name. Renamed to {}", operationId, newOperationId);
+            LOGGER.warn(operationId + " (reserved word) cannot be used as method name. Renamed to " + newOperationId);
             return newOperationId;
         }
 

@@ -51,7 +51,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     protected String defaultDateFormat = "%Y-%m-%d";
     protected String defaultCabalVersion = "0.1.0.0";
     protected String modulePath = null;
-    protected String defaultQueryExtraUnreserved = null;
 
     protected Boolean useKatip = true;
     protected Boolean allowNonUniqueOperationIds = false;
@@ -75,7 +74,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     public static final String PROP_GENERATE_MODEL_CONSTRUCTORS = "generateModelConstructors";
     public static final String PROP_INLINE_MIME_TYPES = "inlineMimeTypes";
     public static final String PROP_MODEL_DERIVING = "modelDeriving";
-    public static final String PROP_QUERY_EXTRA_UNRESERVED = "queryExtraUnreserved";
     public static final String PROP_REQUEST_TYPE = "requestType";
     public static final String PROP_STRICT_FIELDS = "strictFields";
     public static final String PROP_USE_KATIP = "useKatip";
@@ -127,7 +125,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     static final String X_MEDIA_IS_JSON = "x-mediaIsJson";
     static final String X_MEDIA_IS_WILDCARD = "x-mediaIsWildcard";
     static final String X_STRICT_FIELDS = "x-strictFields";
-    static final String X_PROP_QUERY_EXTRA_UNRESERVED = "x-queryExtraUnreserved";
     static final String X_ALL_UNIQUE_IMPORT_PATHS = "x-allUniqueImportPaths";
     static final String X_USE_KATIP = "x-useKatip";
     static final String X_ALLOW_NONUNIQUE_OPERATION_IDS = "x-allowNonUniqueOperationIds";
@@ -311,7 +308,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         cliOptions.add(CliOption.newString(PROP_DATETIME_FORMAT, "format string used to parse/render a datetime"));
         cliOptions.add(CliOption.newString(PROP_DATETIME_PARSE_FORMAT, "overrides the format string used to parse a datetime"));
         cliOptions.add(CliOption.newString(PROP_DATE_FORMAT, "format string used to parse/render a date").defaultValue(defaultDateFormat));
-        cliOptions.add(CliOption.newString(PROP_QUERY_EXTRA_UNRESERVED, "Configures additional querystring characters which must not be URI encoded, e.g. '+' or ':'"));
 
         cliOptions.add(CliOption.newString(PROP_CUSTOM_TEST_INSTANCE_MODULE, "test module used to provide typeclass instances for types not known by the generator"));
 
@@ -373,10 +369,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
 
     public void setCabalVersion(String value) {
         setStringProp(PROP_CABAL_VERSION, value);
-    }
-
-    public void setQueryExtraUnreserved(String value) {
-        additionalProperties.put(X_PROP_QUERY_EXTRA_UNRESERVED, value);
     }
 
     public void setBaseModule(String value) {
@@ -512,11 +504,6 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             setCabalVersion(additionalProperties.get(PROP_CABAL_VERSION).toString());
         } else {
             setCabalVersion(defaultCabalVersion);
-        }
-        if (additionalProperties.containsKey(PROP_QUERY_EXTRA_UNRESERVED)) {
-            setQueryExtraUnreserved(additionalProperties.get(PROP_QUERY_EXTRA_UNRESERVED).toString());
-        } else {
-            setQueryExtraUnreserved(defaultQueryExtraUnreserved);
         }
         if (additionalProperties.containsKey(PROP_BASE_MODULE)) {
             setBaseModule(additionalProperties.get(PROP_BASE_MODULE).toString());
@@ -668,7 +655,8 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             Schema additionalProperties2 = getAdditionalProperties(p);
             String type = additionalProperties2.getType();
             if (null == type) {
-                LOGGER.error("No Type defined for Additional Schema {}\n\tIn Schema: {}", additionalProperties2, p);
+                LOGGER.error("No Type defined for Additional Schema " + additionalProperties2 + "\n" //
+                        + "\tIn Schema: " + p);
             }
             String inner = getSchemaType(additionalProperties2);
             return "(Map.Map Text " + inner + ")";
@@ -705,7 +693,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
             counter++;
         }
         if (!op.operationId.equals(uniqueName)) {
-            LOGGER.warn("generated unique operationId `{}`", uniqueName);
+            LOGGER.warn("generated unique operationId `" + uniqueName + "`");
         }
         op.operationId = uniqueName;
         op.operationIdLowerCase = uniqueName.toLowerCase(Locale.ROOT);
@@ -892,9 +880,15 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
     private void processReturnType(CodegenOperation op) {
         String returnType = op.returnType;
         if (returnType == null || returnType.equals("null")) {
-            returnType = "NoContent";
-            SetNoContent(op, VENDOR_EXTENSION_X_INLINE_ACCEPT);
-            op.hasProduces = false;
+            if (op.hasProduces) {
+                returnType = "res";
+                op.vendorExtensions.put(VENDOR_EXTENSION_X_HAS_UNKNOWN_RETURN, true);
+            } else {
+                returnType = "NoContent";
+                if (!op.vendorExtensions.containsKey(VENDOR_EXTENSION_X_INLINE_ACCEPT)) {
+                    SetNoContent(op, VENDOR_EXTENSION_X_INLINE_ACCEPT);
+                }
+            }
         }
         if (returnType.contains(" ")) {
             returnType = "(" + returnType + ")";
@@ -966,10 +960,10 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         }
     }
 
-    private void SetNoContent(CodegenOperation op, String inlineExtensionName) {
+    private void SetNoContent(CodegenOperation op, String inlineExtentionName) {
         Map<String, String> m = new HashMap<>();
         m.put(X_MEDIA_DATA_TYPE, MIME_NO_CONTENT);
-        op.vendorExtensions.put(inlineExtensionName, m);
+        op.vendorExtensions.put(inlineExtentionName, m);
     }
 
     private String toDedupedModelName(String paramNameType, String dataType, Boolean appendDataType) {
@@ -1431,7 +1425,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
         // remove \t, \n, \r
         // replace \ with \\
         // replace " with \"
-        // outer unescape to retain the original multi-byte characters
+        // outter unescape to retain the original multi-byte characters
         // finally escalate characters avoiding code injection
         return escapeUnsafeCharacters(
                 StringEscapeUtils.unescapeJava(
@@ -1461,7 +1455,7 @@ public class HaskellHttpClientCodegen extends DefaultCodegen implements CodegenC
                 if (exitValue != 0) {
                     LOGGER.error("Error running the command ({}). Exit value: {}", command, exitValue);
                 } else {
-                    LOGGER.info("Successfully executed: {}", command);
+                    LOGGER.info("Successfully executed: " + command);
                 }
             } catch (InterruptedException | IOException e) {
                 LOGGER.error("Error running the command ({}). Exception: {}", command, e.getMessage());

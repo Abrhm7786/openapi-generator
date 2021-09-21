@@ -237,7 +237,7 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
     @Override
     public String toOperationId(String operationId) {
         if (isReservedWord(operationId)) {
-            LOGGER.warn("{} (reserved word) cannot be used as method name. Renamed to {}", operationId, escapeReservedWord(operationId));
+            LOGGER.warn(operationId + " (reserved word) cannot be used as method name. Renamed to " + escapeReservedWord(operationId));
             return escapeReservedWord(operationId);
         }
         return sanitizeName(super.toOperationId(operationId));
@@ -275,7 +275,6 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
      * @param name the name of the property
      * @return getter name based on naming convention
      */
-    @Override
     public String toBooleanGetter(String name) {
         return "is" + getterAndSetterCapitalize(name);
     }
@@ -285,7 +284,6 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
         return "std::shared_ptr<" + toModelName(str) + ">";
     }
 
-    @Override
     public void processOpts() {
         super.processOpts();
 
@@ -331,7 +329,7 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
                 if (exitValue != 0) {
                     LOGGER.error("Error running the command ({}). Exit value: {}", command, exitValue);
                 } else {
-                    LOGGER.info("Successfully executed: {}", command);
+                    LOGGER.info("Successfully executed: " + command);
                 }
             } catch (InterruptedException | IOException e) {
                 LOGGER.error("Error running the command ({}). Exception: {}", command, e.getMessage());

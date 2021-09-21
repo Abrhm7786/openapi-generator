@@ -136,7 +136,7 @@ public class RubyOnRailsServerCodegen extends AbstractRubyCodegen {
         } else if ("mysql".equals(databaseAdapter)) {
             additionalProperties.put("isDBMySQL", Boolean.TRUE);
         } else {
-            LOGGER.warn("Unknown database {}. Default to 'sqlite'.", databaseAdapter);
+            LOGGER.warn("Unknown database {}. Defaul to 'sqlite'.", databaseAdapter);
             additionalProperties.put("isDBSQLite", Boolean.TRUE);
         }
 
@@ -238,7 +238,7 @@ public class RubyOnRailsServerCodegen extends AbstractRubyCodegen {
         // model name cannot use reserved keyword, e.g. return
         if (isReservedWord(name)) {
             String modelName = camelize("Model" + name);
-            LOGGER.warn("{} (reserved word) cannot be used as model name. Renamed to {}", name, modelName);
+            LOGGER.warn(name + " (reserved word) cannot be used as model name. Renamed to " + modelName);
             return modelName;
         }
 
@@ -252,7 +252,7 @@ public class RubyOnRailsServerCodegen extends AbstractRubyCodegen {
         // model name cannot use reserved keyword, e.g. return
         if (isReservedWord(name)) {
             String filename = underscore("model_" + name);
-            LOGGER.warn("{} (reserved word) cannot be used as model filename. Renamed to {}", name, filename);
+            LOGGER.warn(name + " (reserved word) cannot be used as model filename. Renamed to " + filename);
             return filename;
         }
 

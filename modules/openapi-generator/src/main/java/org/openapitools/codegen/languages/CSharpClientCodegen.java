@@ -75,7 +75,7 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
     // By default, generated code is considered public
     protected boolean nonPublicApi = Boolean.FALSE;
 
-    // use KellermanSoftware.CompareNetObjects for deep recursive object comparison
+    // use KellermanSoftware.CompareNetObjects for deep recursive object comparision
     protected boolean useCompareNetObjects = Boolean.FALSE;
 
     // To make API response's headers dictionary case insensitive
@@ -311,7 +311,7 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
             LOGGER.warn(".NET Standard 1.3 support has been DEPRECATED in this generator. Please use `csharp-netcore` generator instead.");
             additionalProperties.put(MCS_NET_VERSION_KEY, "4.6-api");
             if (additionalProperties.containsKey("supportsUWP")) {
-                LOGGER.warn(".NET {} generator does not support UWP.", NETSTANDARD);
+                LOGGER.warn(".NET " + NETSTANDARD + " generator does not support UWP.");
                 additionalProperties.remove("supportsUWP");
             }
 
@@ -332,7 +332,7 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
         } else if (NET40.equals(this.targetFramework)) {
             additionalProperties.put(MCS_NET_VERSION_KEY, "4");
             if (additionalProperties.containsKey(CodegenConstants.SUPPORTS_ASYNC)) {
-                LOGGER.warn(".NET {} generator does not support async.", NET40);
+                LOGGER.warn(".NET " + NET40 + " generator does not support async.");
                 additionalProperties.remove(CodegenConstants.SUPPORTS_ASYNC);
             }
 
@@ -350,13 +350,13 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
 
         if (additionalProperties.containsKey(CodegenConstants.GENERATE_PROPERTY_CHANGED)) {
             if (NET35.equals(targetFramework)) {
-                LOGGER.warn("{} is only supported by generated code for .NET 4+.", CodegenConstants.GENERATE_PROPERTY_CHANGED);
+                LOGGER.warn(CodegenConstants.GENERATE_PROPERTY_CHANGED + " is only supported by generated code for .NET 4+.");
                 additionalProperties.remove(CodegenConstants.GENERATE_PROPERTY_CHANGED);
             } else if (NETSTANDARD.equals(targetFramework)) {
-                LOGGER.warn("{} is not supported in .NET Standard generated code.", CodegenConstants.GENERATE_PROPERTY_CHANGED);
+                LOGGER.warn(CodegenConstants.GENERATE_PROPERTY_CHANGED + " is not supported in .NET Standard generated code.");
                 additionalProperties.remove(CodegenConstants.GENERATE_PROPERTY_CHANGED);
             } else if (Boolean.TRUE.equals(netCoreProjectFileFlag)) {
-                LOGGER.warn("{} is not supported in .NET Core csproj project format.", CodegenConstants.GENERATE_PROPERTY_CHANGED);
+                LOGGER.warn(CodegenConstants.GENERATE_PROPERTY_CHANGED + " is not supported in .NET Core csproj project format.");
                 additionalProperties.remove(CodegenConstants.GENERATE_PROPERTY_CHANGED);
             } else {
                 setGeneratePropertyChanged(convertPropertyToBooleanAndWriteBack(CodegenConstants.GENERATE_PROPERTY_CHANGED));
@@ -537,6 +537,33 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
     }
 
     @Override
+    public Map<String, Object> postProcessOperationsWithModels(Map<String, Object> objs, List<Object> allModels) {
+        super.postProcessOperationsWithModels(objs, allModels);
+        if (objs != null) {
+            Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
+            if (operations != null) {
+                List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
+                for (CodegenOperation operation : ops) {
+                    if (operation.returnType != null) {
+                        operation.returnContainer = operation.returnType;
+                        if (this.returnICollection && (
+                                operation.returnType.startsWith("List") ||
+                                        operation.returnType.startsWith("Collection"))) {
+                            // NOTE: ICollection works for both List<T> and Collection<T>
+                            int genericStart = operation.returnType.indexOf("<");
+                            if (genericStart > 0) {
+                                operation.returnType = "ICollection" + operation.returnType.substring(genericStart);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return objs;
+    }
+
+    @Override
     public CodegenType getTag() {
         return CodegenType.CLIENT;
     }
@@ -687,7 +714,7 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
 
     public void setTargetFramework(String dotnetFramework) {
         if (!frameworks.containsKey(dotnetFramework)) {
-            LOGGER.warn("Invalid .NET framework version, defaulting to {}", this.targetFramework);
+            LOGGER.warn("Invalid .NET framework version, defaulting to " + this.targetFramework);
         } else {
             this.targetFramework = dotnetFramework;
         }
@@ -731,7 +758,7 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
                 break;
         }
 
-        LOGGER.info("Generating code for .NET Framework {}", this.targetFramework);
+        LOGGER.info("Generating code for .NET Framework " + this.targetFramework);
     }
 
     private CodegenModel reconcileInlineEnums(CodegenModel codegenModel, CodegenModel parentCodegenModel) {
@@ -750,15 +777,15 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
 
             // Iterate over all of the parent model properties
             boolean removedChildEnum = false;
-            for (CodegenProperty parentModelCodegenProperty : parentModelCodegenProperties) {
+            for (CodegenProperty parentModelCodegenPropery : parentModelCodegenProperties) {
                 // Look for enums
-                if (parentModelCodegenProperty.isEnum) {
+                if (parentModelCodegenPropery.isEnum) {
                     // Now that we have found an enum in the parent class,
                     // and search the child class for the same enum.
                     Iterator<CodegenProperty> iterator = codegenProperties.iterator();
                     while (iterator.hasNext()) {
                         CodegenProperty codegenProperty = iterator.next();
-                        if (codegenProperty.isEnum && codegenProperty.equals(parentModelCodegenProperty)) {
+                        if (codegenProperty.isEnum && codegenProperty.equals(parentModelCodegenPropery)) {
                             // We found an enum in the child class that is
                             // a duplicate of the one in the parent, so remove it.
                             iterator.remove();
@@ -815,7 +842,7 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
         // sanitize name
         name = sanitizeName(name);
 
-        // if it's all upper case, do nothing
+        // if it's all uppper case, do nothing
         if (name.matches("^[A-Z_]*$")) {
             return name;
         }
@@ -847,12 +874,10 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
         }
     }
 
-    @Override
     public void setPackageName(String packageName) {
         this.packageName = packageName;
     }
 
-    @Override
     public void setPackageVersion(String packageVersion) {
         this.packageVersion = packageVersion;
     }

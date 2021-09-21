@@ -37,7 +37,7 @@ public class DartDioClientCodegenTest {
         codegen.processOpts();
 
         Assert.assertEquals(codegen.additionalProperties().get(CodegenConstants.HIDE_GENERATION_TIMESTAMP), Boolean.TRUE);
-        Assert.assertTrue(codegen.isHideGenerationTimestamp());
+        Assert.assertEquals(codegen.isHideGenerationTimestamp(), true);
     }
 
     @Test
@@ -47,7 +47,7 @@ public class DartDioClientCodegenTest {
         codegen.processOpts();
 
         Assert.assertEquals(codegen.additionalProperties().get(CodegenConstants.HIDE_GENERATION_TIMESTAMP), Boolean.FALSE);
-        Assert.assertFalse(codegen.isHideGenerationTimestamp());
+        Assert.assertEquals(codegen.isHideGenerationTimestamp(), false);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class DartDioClientCodegenTest {
         codegen.processOpts();
 
         Assert.assertEquals(codegen.additionalProperties().get(CodegenConstants.HIDE_GENERATION_TIMESTAMP), Boolean.FALSE);
-        Assert.assertFalse(codegen.isHideGenerationTimestamp());
+        Assert.assertEquals(codegen.isHideGenerationTimestamp(), false);
     }
 
     @Test
@@ -74,11 +74,11 @@ public class DartDioClientCodegenTest {
             Assert.fail(errorString, e);
         }
 
-        Assert.assertTrue(reservedWordsList.size() > 20);
-        Assert.assertEquals(codegen.reservedWords().size(), reservedWordsList.size());
+        Assert.assertEquals(reservedWordsList.size() > 20, true);
+        Assert.assertEquals(codegen.reservedWords().size() == reservedWordsList.size(), true);
         for(String keyword : reservedWordsList) {
             // reserved words are stored in lowercase
-            Assert.assertTrue(codegen.reservedWords().contains(keyword.toLowerCase(Locale.ROOT)), String.format(Locale.ROOT, "%s, part of %s, was not found in %s", keyword, reservedWordsList, codegen.reservedWords().toString()));
+            Assert.assertEquals(codegen.reservedWords().contains(keyword.toLowerCase(Locale.ROOT)), true, String.format(Locale.ROOT, "%s, part of %s, was not found in %s", keyword, reservedWordsList, codegen.reservedWords().toString()));
         }
     }
 

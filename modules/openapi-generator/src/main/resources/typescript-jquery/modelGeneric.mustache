@@ -1,4 +1,4 @@
-export interface {{classname}} {{#parent}}extends models.{{{.}}} {{/parent}}{
+export interface {{classname}} {{#parent}}extends models.{{{parent}}} {{/parent}}{
 {{#additionalPropertiesType}}
     [key: string]: {{{additionalPropertiesType}}}{{#hasVars}} | any{{/hasVars}};
 
@@ -6,7 +6,7 @@ export interface {{classname}} {{#parent}}extends models.{{{.}}} {{/parent}}{
 {{#vars}}
     {{#description}}
     /**
-     * {{{.}}}
+     * {{{description}}}
      */
     {{/description}}
     {{name}}{{^required}}?{{/required}}: {{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}};

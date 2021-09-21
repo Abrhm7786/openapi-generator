@@ -39,7 +39,7 @@ import static org.openapitools.codegen.utils.StringUtils.*;
 
 @SuppressWarnings("unchecked")
 public class KtormSchemaCodegen extends AbstractKotlinCodegen {
-    private final Logger LOGGER = LoggerFactory.getLogger(KtormSchemaCodegen.class);
+    static Logger LOGGER = LoggerFactory.getLogger(KtormSchemaCodegen.class);
 
     public static final String VENDOR_EXTENSION_SCHEMA = "x-ktorm-schema";
     public static final String DEFAULT_DATABASE_NAME = "defaultDatabaseName";
@@ -301,7 +301,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
 
             if (modelVendorExtensions.containsKey(VENDOR_EXTENSION_SCHEMA)) {
                 // user already specified schema values
-                LOGGER.info("Found vendor extension in '{}' model, autogeneration skipped", modelName);
+                LOGGER.info("Found vendor extension in '" + modelName + "' model, autogeneration skipped");
             } else {
                 modelVendorExtensions.put(VENDOR_EXTENSION_SCHEMA, ktormSchema);
                 ktormSchema.put("tableDefinition", tableDefinition);
@@ -359,7 +359,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
 
         if (vendorExtensions.containsKey(VENDOR_EXTENSION_SCHEMA)) {
             // user already specified schema values
-            LOGGER.info("Found vendor extension in '{}' property, autogeneration skipped", baseName);
+            LOGGER.info("Found vendor extension in '" + baseName + "' property, autogeneration skipped");
             return;
         }
 
@@ -640,8 +640,8 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
     /**
      * Processes each model's property type arguments definitions
      *
-     * @param dataType         the chosen sql type
-     * @param dataFormat       the chosen sql format
+     * @param dataType         the choosen sql type
+     * @param dataFormat       the choosen sql format
      * @param min              the minimum value, if specified, in the target type
      * @param max              the maximum value, if specified, in the target type
      * @param columnDefinition resulting column definition dictionary
@@ -688,8 +688,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
             try {
                 columnDefinition.put("colDefault", toColumnTypeDefault(defaultValue, dataType, dataFormat));
             } catch (RuntimeException exception) {
-                LOGGER.warn("Property '{}' of model '{}' mapped to data type which doesn't support default value",
-                        baseName, model.getName());
+                LOGGER.warn("Property '" + baseName + "' of model '" + model.getName() + "' mapped to data type which doesn't support default value");
                 columnDefinition.put("colDefault", null);
             }
         }
@@ -986,7 +985,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
     public String toDatabaseName(String name) {
         String identifier = toIdentifier(name, databaseNamePrefix, databaseNameSuffix);
         if (identifier.length() > IDENTIFIER_MAX_LENGTH) {
-            LOGGER.warn("Database name too long. Name '{}' will be truncated", name);
+            LOGGER.warn("Database name too long. Name '" + name + "' will be truncated");
             identifier = identifier.substring(0, IDENTIFIER_MAX_LENGTH);
         }
         return identifier;
@@ -1005,7 +1004,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
             identifier = underscore(identifier);
         }
         if (identifier.length() > IDENTIFIER_MAX_LENGTH) {
-            LOGGER.warn("Table name too long. Name '{}' will be truncated", name);
+            LOGGER.warn("Table name too long. Name '" + name + "' will be truncated");
             identifier = identifier.substring(0, IDENTIFIER_MAX_LENGTH);
         }
         return identifier;
@@ -1024,7 +1023,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
             identifier = underscore(identifier);
         }
         if (identifier.length() > IDENTIFIER_MAX_LENGTH) {
-            LOGGER.warn("Column name too long. Name '{}' will be truncated", name);
+            LOGGER.warn("Column name too long. Name '" + name + "' will be truncated");
             identifier = identifier.substring(0, IDENTIFIER_MAX_LENGTH);
         }
         return identifier;
@@ -1043,13 +1042,13 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
         String escapedName = escapeQuotedIdentifier(name);
         // Database, table, and column names cannot end with space characters.
         if (escapedName.matches(".*\\s$")) {
-            LOGGER.warn("Database, table, and column names cannot end with space characters. Check '{}' name", name);
+            LOGGER.warn("Database, table, and column names cannot end with space characters. Check '" + name + "' name");
             escapedName = escapedName.replaceAll("\\s+$", "");
         }
 
         // Identifiers may begin with a digit but unless quoted may not consist solely of digits.
         if (escapedName.matches("^\\d+$")) {
-            LOGGER.warn("Database, table, and column names cannot consist solely of digits. Check '{}' name", name);
+            LOGGER.warn("Database, table, and column names cannot consist solely of digits. Check '" + name + "' name");
             escapedName = prefix + escapedName + suffix;
         }
 
@@ -1075,8 +1074,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
         Pattern regexp = Pattern.compile("[^0-9a-zA-z$_\\x0080-\\xFFFF]");
         Matcher matcher = regexp.matcher(identifier);
         if (matcher.find()) {
-            LOGGER.warn("Identifier '{}' contains unsafe characters out of [0-9,a-z,A-Z$_] and U+0080..U+FFFF range",
-                    identifier);
+            LOGGER.warn("Identifier '" + identifier + "' contains unsafe characters out of [0-9,a-z,A-Z$_] and U+0080..U+FFFF range");
             identifier = identifier.replaceAll("[^0-9a-zA-z$_\\x0080-\\xFFFF]", "");
         }
         return identifier;
@@ -1108,9 +1106,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
     public void setDefaultDatabaseName(String databaseName) {
         String escapedName = toDatabaseName(databaseName);
         if (!escapedName.equals(databaseName)) {
-            LOGGER.error(
-                    "Invalid database name. '{}' cannot be used as identifier. Escaped value '{}' will be used instead.",
-                    databaseName, escapedName);
+            LOGGER.error("Invalid database name. '" + databaseName + "' cannot be used as identifier. Escaped value '" + escapedName + "' will be used instead.");
         }
         this.defaultDatabaseName = escapedName;
     }
@@ -1156,8 +1152,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
                 this.identifierNamingConvention = naming;
                 break;
             default:
-                LOGGER.warn("\"{}\" is invalid \"identifierNamingConvention\" argument. Current \"{}\" used instead.",
-                        naming, this.identifierNamingConvention);
+                LOGGER.warn("\"" + naming + "\" is invalid \"identifierNamingConvention\" argument. Current \"" + this.identifierNamingConvention + "\" used instead.");
         }
     }
 
@@ -1171,7 +1166,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
     }
 
     /**
-     * Sets primary key naming convention
+     * Sets primary key naming convenion
      *
      * @param name name
      */
@@ -1180,7 +1175,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
     }
 
     /**
-     * Returns primary key naming convention
+     * Returns primary key naming convenion
      *
      * @return name
      */
@@ -1189,7 +1184,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
     }
 
     /**
-     * Sets primary key naming convention
+     * Sets primary key naming convenion
      *
      * @param enable enable this option
      */
@@ -1198,7 +1193,7 @@ public class KtormSchemaCodegen extends AbstractKotlinCodegen {
     }
 
     /**
-     * Returns primary key naming convention
+     * Returns primary key naming convenion
      *
      * @return is enabled
      */

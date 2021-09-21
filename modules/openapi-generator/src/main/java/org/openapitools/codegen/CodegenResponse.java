@@ -36,9 +36,7 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
     public boolean isString;
     public boolean isNumeric;
     public boolean isInteger;
-    public boolean isShort;
     public boolean isLong;
-    public boolean isUnboundedInteger;
     public boolean isNumber;
     public boolean isFloat;
     public boolean isDouble;
@@ -84,7 +82,6 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
     private boolean additionalPropertiesIsAnyType;
     private boolean hasVars;
     private boolean hasRequired;
-    private boolean hasDiscriminatorWithNonEmptyMapping;
 
     @Override
     public int hashCode() {
@@ -92,11 +89,10 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
                 isString, isNumeric, isInteger, isLong, isNumber, isFloat, isDouble, isDecimal, isByteArray, isBoolean, isDate,
                 isDateTime, isUuid, isEmail, isModel, isFreeFormObject, isAnyType, isDefault, simpleType, primitiveType,
                 isMap, isArray, isBinary, isFile, schema, jsonSchema, vendorExtensions, items, additionalProperties,
-                vars, requiredVars, isNull, hasValidation, isShort, isUnboundedInteger,
+                vars, requiredVars, isNull, hasValidation,
                 getMaxProperties(), getMinProperties(), uniqueItems, getMaxItems(), getMinItems(), getMaxLength(),
                 getMinLength(), exclusiveMinimum, exclusiveMaximum, getMinimum(), getMaximum(), getPattern(),
-                is1xx, is2xx, is3xx, is4xx, is5xx, additionalPropertiesIsAnyType, hasVars, hasRequired,
-                hasDiscriminatorWithNonEmptyMapping);
+                is1xx, is2xx, is3xx, is4xx, is5xx, additionalPropertiesIsAnyType, hasVars, hasRequired);
     }
 
     @Override
@@ -108,9 +104,7 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
                 isString == that.isString &&
                 isNumeric == that.isNumeric &&
                 isInteger == that.isInteger &&
-                isShort == that.isShort &&
                 isLong == that.isLong &&
-                isUnboundedInteger == that.isUnboundedInteger &&
                 isNumber == that.isNumber &&
                 isFloat == that.isFloat &&
                 isDouble == that.isDouble &&
@@ -140,7 +134,6 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
                 is3xx == that.is3xx &&
                 is4xx == that.is4xx &&
                 is5xx == that.is5xx &&
-                hasDiscriminatorWithNonEmptyMapping == that.getHasDiscriminatorWithNonEmptyMapping() &&
                 getAdditionalPropertiesIsAnyType() == that.getAdditionalPropertiesIsAnyType() &&
                 getHasVars() == that.getHasVars() &&
                 getHasRequired() == that.getHasRequired() &&
@@ -324,30 +317,6 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
     }
 
     @Override
-    public boolean getIsShort() { return isShort; }
-
-    @Override
-    public void setIsShort(boolean isShort)  {
-        this.isShort = isShort;
-    }
-
-    @Override
-    public boolean getIsBoolean() { return isBoolean; }
-
-    @Override
-    public void setIsBoolean(boolean isBoolean)  {
-        this.isBoolean = isBoolean;
-    }
-
-    @Override
-    public boolean getIsUnboundedInteger() { return isUnboundedInteger; }
-
-    @Override
-    public void setIsUnboundedInteger(boolean isUnboundedInteger)  {
-        this.isUnboundedInteger = isUnboundedInteger;
-    }
-
-    @Override
     public void setIsModel(boolean isModel)  {
         this.isModel = isModel;
     }
@@ -433,9 +402,7 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
         sb.append(", isString=").append(isString);
         sb.append(", isNumeric=").append(isNumeric);
         sb.append(", isInteger=").append(isInteger);
-        sb.append(", isShort=").append(isShort);
         sb.append(", isLong=").append(isLong);
-        sb.append(", isUnboundedInteger=").append(isUnboundedInteger);
         sb.append(", isNumber=").append(isNumber);
         sb.append(", isFloat=").append(isFloat);
         sb.append(", isDouble=").append(isDouble);
@@ -481,7 +448,6 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
         sb.append(", getAdditionalPropertiesIsAnyType=").append(additionalPropertiesIsAnyType);
         sb.append(", getHasVars=").append(hasVars);
         sb.append(", getHasRequired=").append(hasRequired);
-        sb.append(", getHasDiscriminatorWithNonEmptyMapping=").append(hasDiscriminatorWithNonEmptyMapping);
         sb.append('}');
         return sb.toString();
     }
@@ -537,13 +503,5 @@ public class CodegenResponse implements IJsonSchemaValidationProperties {
     @Override
     public void setHasVars(boolean hasVars) {
         this.hasVars = hasVars;
-    }
-
-    @Override
-    public boolean getHasDiscriminatorWithNonEmptyMapping() { return hasDiscriminatorWithNonEmptyMapping; };
-
-    @Override
-    public void setHasDiscriminatorWithNonEmptyMapping(boolean hasDiscriminatorWithNonEmptyMapping) {
-        this.hasDiscriminatorWithNonEmptyMapping = hasDiscriminatorWithNonEmptyMapping;
     }
 }

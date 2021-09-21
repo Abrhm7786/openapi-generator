@@ -7,9 +7,6 @@ import (
 ){{#operation}}
 
 // {{nickname}} - {{{summary}}}
-{{#isDeprecated}}
-// Deprecated
-{{/isDeprecated}}
 func (c *Container) {{operationId}}(ctx echo.Context) error {
     return ctx.JSON(http.StatusOK, models.HelloWorld {
         Message: "Hello World",

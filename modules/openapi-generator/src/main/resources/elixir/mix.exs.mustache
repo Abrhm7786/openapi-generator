@@ -7,8 +7,6 @@ defmodule {{moduleName}}.Mixfile do
      elixir: "~> {{supportedElixirVersion}}",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     package: package(),
-     description: "{{appDescription}}",
      deps: deps()]
   end
 
@@ -34,14 +32,6 @@ defmodule {{moduleName}}.Mixfile do
 {{#deps}}
       {{{this}}}{{^-last}},{{/-last}}
 {{/deps}}
-    ]
-  end
-
-   defp package() do
-    [
-      name: "{{#underscored}}{{packageName}}{{/underscored}}",
-      files: ~w(lib mix.exs README* LICENSE*),
-      licenses: ["{{licenseId}}"]
     ]
   end
 end

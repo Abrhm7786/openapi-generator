@@ -1,23 +1,23 @@
 [package]
 name = "{{{packageName}}}"
 version = "{{{packageVersion}}}"
-authors = [{{#infoEmail}}"{{{.}}}"{{/infoEmail}}]
+authors = [{{#infoEmail}}"{{{infoEmail}}}"{{/infoEmail}}]
 {{#appDescription}}
-description = "{{{.}}}"
+description = "{{{appDescription}}}"
 {{/appDescription}}
 license = "Unlicense"
 edition = "2018"
 {{#publishRustRegistry}}
-publish = ["{{.}}"]
+publish = ["{{publishRustRegistry}}"]
 {{/publishRustRegistry}}
 {{#repositoryUrl}}
-repository = "{{.}}"
+repository = "{{repositoryUrl}}"
 {{/repositoryUrl}}
 {{#documentationUrl}}
-documentation = "{{.}}"
+documentation = "{{documentationUrl}}"
 {{/documentationUrl}}
 {{#homePageUrl}}
-homepage = "{{.}}
+homepage = "{{homePageUrl}}
 {{/homePageUrl}}
 
 [features]

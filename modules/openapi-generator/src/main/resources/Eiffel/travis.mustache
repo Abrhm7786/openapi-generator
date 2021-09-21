@@ -6,10 +6,11 @@ before_script:
   - source ./eiffel.rc
   - echo `ec -version`
   - cd $current_dir
-
+  
 # safelist
 branches:
   only:
   - master
 
 script: compile_all -ecb -melt -list_failures -clean -options dotnet=false
+

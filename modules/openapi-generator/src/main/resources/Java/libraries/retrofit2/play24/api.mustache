@@ -33,14 +33,8 @@ public interface {{classname}} {
 {{#allParams}}
    * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}
 {{/allParams}}
-   * @return Call&lt;{{returnType}}{{^returnType}}Void{{/returnType}}&gt;
-{{#isDeprecated}}
-   * @deprecated
-{{/isDeprecated}}
+   * @return Call&lt;{{#returnType}}{{returnType}}{{/returnType}}{{^returnType}}Void{{/returnType}}&gt;
    */
-  {{#isDeprecated}}
-  @Deprecated
-  {{/isDeprecated}}
   {{#formParams}}
   {{#-first}}
   {{#isMultipart}}@retrofit2.http.Multipart{{/isMultipart}}{{^isMultipart}}@retrofit2.http.FormUrlEncoded{{/isMultipart}}
@@ -56,7 +50,7 @@ public interface {{classname}} {
   {{/prioritizedContentTypes}}
   {{/formParams}}
   @{{httpMethod}}("{{{path}}}")
-  F.Promise<Response<{{{returnType}}}{{^returnType}}Void{{/returnType}}>> {{operationId}}({{^allParams}});{{/allParams}}
+  F.Promise<Response<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}>> {{operationId}}({{^allParams}});{{/allParams}}
     {{#allParams}}{{>libraries/retrofit2/queryParams}}{{>libraries/retrofit2/pathParams}}{{>libraries/retrofit2/headerParams}}{{>libraries/retrofit2/bodyParams}}{{>libraries/retrofit2/formParams}}{{^-last}}, {{/-last}}{{#-last}}
   );{{/-last}}{{/allParams}}
 

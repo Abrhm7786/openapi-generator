@@ -1,9 +1,7 @@
 {
-    {{#composerPackageName}}
-    "name": "{{.}}",
-    {{/composerPackageName}}
+    "name": "{{gitUserId}}/{{gitRepoId}}",
     {{#artifactVersion}}
-    "version": "{{.}}",
+    "version": "{{artifactVersion}}",
     {{/artifactVersion}}
     "description": "{{{appDescription}}}",
     "keywords": [
@@ -24,7 +22,7 @@
         }
     ],
     "require": {
-        "php": "^7.3 || ^8.0",
+        "php": ">=7.2",
         "ext-curl": "*",
         "ext-json": "*",
         "ext-mbstring": "*",

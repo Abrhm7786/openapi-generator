@@ -259,12 +259,10 @@ public class RustClientCodegen extends DefaultCodegen implements CodegenConfig {
             setPackageName("openapi");
         }
 
-        // If no version is provided in additional properties, version from API specification is used.
-        // If none of them is provided then fallback to default version
         if (additionalProperties.containsKey(CodegenConstants.PACKAGE_VERSION)) {
             setPackageVersion((String) additionalProperties.get(CodegenConstants.PACKAGE_VERSION));
-        } else if (openAPI != null && openAPI.getInfo() != null && openAPI.getInfo().getVersion() != null) {
-            setPackageVersion(openAPI.getInfo().getVersion());
+        } else {
+            setPackageVersion("1.0.0");
         }
 
         if (additionalProperties.containsKey(CodegenConstants.USE_SINGLE_REQUEST_PARAMETER)) {
@@ -363,7 +361,7 @@ public class RustClientCodegen extends DefaultCodegen implements CodegenConfig {
         // replace - with _ e.g. created-at => created_at
         name = sanitizeName(name.replaceAll("-", "_"));
 
-        // if it's all upper case, do nothing
+        // if it's all uppper case, do nothing
         if (name.matches("^[A-Z_]*$"))
             return name;
 
@@ -408,14 +406,13 @@ public class RustClientCodegen extends DefaultCodegen implements CodegenConfig {
 
         // model name cannot use reserved keyword, e.g. return
         if (isReservedWord(name)) {
-            LOGGER.warn("{} (reserved word) cannot be used as model name. Renamed to {}", name, "model_" + name);
+            LOGGER.warn(name + " (reserved word) cannot be used as model name. Renamed to " + ("model_" + name));
             name = "model_" + name; // e.g. return => ModelReturn (after camelize)
         }
 
         // model name starts with number
         if (name.matches("^\\d.*")) {
-            LOGGER.warn("{} (model name starts with number) cannot be used as model name. Renamed to {}", name,
-                    "model_" + name);
+            LOGGER.warn(name + " (model name starts with number) cannot be used as model name. Renamed to " + ("model_" + name));
             name = "model_" + name; // e.g. 200Response => Model200Response (after camelize)
         }
 
@@ -457,15 +454,14 @@ public class RustClientCodegen extends DefaultCodegen implements CodegenConfig {
             ArraySchema ap = (ArraySchema) p;
             Schema inner = ap.getItems();
             if (inner == null) {
-                LOGGER.warn("{}(array property) does not have a proper inner type defined.Default to string",
-                        ap.getName());
+                LOGGER.warn(ap.getName() + "(array property) does not have a proper inner type defined.Default to string");
                 inner = new StringSchema().description("TODO default missing array inner type to string");
             }
             return "Vec<" + getTypeDeclaration(inner) + ">";
         } else if (ModelUtils.isMapSchema(p)) {
             Schema inner = getAdditionalProperties(p);
             if (inner == null) {
-                LOGGER.warn("{}(map property) does not have a proper inner type defined. Default to string", p.getName());
+                LOGGER.warn(p.getName() + "(map property) does not have a proper inner type defined. Default to string");
                 inner = new StringSchema().description("TODO default missing map inner type to string");
             }
             return "::std::collections::HashMap<String, " + getTypeDeclaration(inner) + ">";
@@ -506,7 +502,7 @@ public class RustClientCodegen extends DefaultCodegen implements CodegenConfig {
 
         // method name cannot use reserved keyword, e.g. return
         if (isReservedWord(sanitizedOperationId)) {
-            LOGGER.warn("{} (reserved word) cannot be used as method name. Renamed to {}", operationId, StringUtils.underscore("call_" + operationId));
+            LOGGER.warn(operationId + " (reserved word) cannot be used as method name. Renamed to " + StringUtils.underscore("call_" + operationId));
             sanitizedOperationId = "call_" + sanitizedOperationId;
         }
 
@@ -524,7 +520,7 @@ public class RustClientCodegen extends DefaultCodegen implements CodegenConfig {
             if (HYPER_LIBRARY.equals(getLibrary())) {
                 operation.httpMethod = StringUtils.camelize(operation.httpMethod.toLowerCase(Locale.ROOT));
             } else if (REQWEST_LIBRARY.equals(getLibrary())) {
-                operation.httpMethod = operation.httpMethod.toUpperCase(Locale.ROOT);
+                operation.httpMethod = operation.httpMethod.toLowerCase(Locale.ROOT);
             }
 
             // add support for single request parameter using x-group-parameters

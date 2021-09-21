@@ -1,26 +1,26 @@
 {{#maxLength}}
-            'max_length': {{.}},
+            'max_length': {{maxLength}},
 {{/maxLength}}
 {{#minLength}}
-            'min_length': {{.}},
+            'min_length': {{minLength}},
 {{/minLength}}
 {{#maxItems}}
-            'max_items': {{.}},
+            'max_items': {{maxItems}},
 {{/maxItems}}
 {{#minProperties}}
-            'min_properties': {{.}},
+            'min_properties': {{minProperties}},
 {{/minProperties}}
 {{#maxProperties}}
-            'max_properties': {{.}},
+            'max_properties': {{maxProperties}},
 {{/maxProperties}}
 {{#minItems}}
-            'min_items': {{.}},
+            'min_items': {{minItems}},
 {{/minItems}}
 {{#maximum}}
-            {{#exclusiveMaximum}}'exclusive_maximum'{{/exclusiveMaximum}}'inclusive_maximum': {{maximum}},
+            {{#exclusiveMaximum}}'exclusive_maximum'{{/exclusiveMaximum}}'inclusive_maximum'{{^exclusiveMaximum}}{{/exclusiveMaximum}}: {{maximum}},
 {{/maximum}}
 {{#minimum}}
-            {{#exclusiveMinimum}}'exclusive_minimum'{{/exclusiveMinimum}}'inclusive_minimum': {{minimum}},
+            {{#exclusiveMinimum}}'exclusive_minimum'{{/exclusiveMinimum}}'inclusive_minimum'{{^exclusiveMinimum}}{{/exclusiveMinimum}}: {{minimum}},
 {{/minimum}}
 {{#pattern}}
             'regex': {
@@ -29,6 +29,6 @@
             },
 {{/pattern}}
 {{#multipleOf}}
-            'multiple_of': {{.}},
+            'multiple_of': {{multipleOf}},
 {{/multipleOf}}
         },

@@ -1043,7 +1043,7 @@ paths:
       responses:
         '200':
           description: Success
-  /fake/test-query-parameters:
+  /fake/test-query-paramters:
     put:
       tags:
         - fake

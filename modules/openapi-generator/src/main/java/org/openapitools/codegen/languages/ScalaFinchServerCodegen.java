@@ -453,7 +453,7 @@ public class ScalaFinchServerCodegen extends DefaultCodegen implements CodegenCo
                 }
                 p.vendorExtensions.put("x-codegen-normalized-input-type", toInputParameter(p));
             } else {
-                //Path parameters are handled in generateScalaPath()
+                //Path paremeters are handled in generateScalaPath()
                 p.vendorExtensions.put("x-codegen-normalized-input-type", p.dataType);
             }
             if (p.vendorExtensions.get("x-codegen-normalized-path-type") != null) {

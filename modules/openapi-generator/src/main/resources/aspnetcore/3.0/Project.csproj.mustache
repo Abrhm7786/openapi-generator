@@ -1,15 +1,12 @@
 <Project Sdk="{{projectSdk}}">
   <PropertyGroup>
-    <Description>{{packageDescription}}{{^packageDescription}}{{packageName}}{{/packageDescription}}</Description>
+    <Description>{{^packageDescription}}{{packageName}}{{/packageDescription}}{{packageDescription}}</Description>
     <Copyright>{{packageCopyright}}</Copyright>
     <Authors>{{packageAuthors}}</Authors>
     <TargetFramework>{{targetFramework}}</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <Version>{{packageVersion}}</Version>
-{{#nullableReferenceTypes}}
-    <Nullable>annotations</Nullable>
-{{/nullableReferenceTypes}}
 {{#isLibrary}}
     <OutputType>Library</OutputType>
 {{/isLibrary}}

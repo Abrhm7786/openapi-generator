@@ -96,7 +96,7 @@ public abstract class AbstractApexCodegen extends DefaultCodegen implements Code
             name = "_u";
         }
 
-        // if it's all upper case, do nothing
+        // if it's all uppper case, do nothing
         if (name.matches("^[A-Z_]*$")) {
             if (isReservedWord(name)) {
                 name = escapeReservedWord(name);
@@ -162,15 +162,14 @@ public abstract class AbstractApexCodegen extends DefaultCodegen implements Code
         // model name cannot use reserved keyword, e.g. return
         if (isReservedWord(camelizedName)) {
             final String modelName = "Model" + camelizedName;
-            LOGGER.warn("{} (reserved word) cannot be used as model name. Renamed to {}", camelizedName, modelName);
+            LOGGER.warn(camelizedName + " (reserved word) cannot be used as model name. Renamed to " + modelName);
             return modelName;
         }
 
         // model name starts with number
         if (camelizedName.matches("^\\d.*")) {
             final String modelName = "Model" + camelizedName; // e.g. 200Response => Model200Response (after camelize)
-            LOGGER.warn("{} (model name starts with number) cannot be used as model name. Renamed to {}", name,
-                    modelName);
+            LOGGER.warn(name + " (model name starts with number) cannot be used as model name. Renamed to " + modelName);
             return modelName;
         }
 
@@ -189,7 +188,7 @@ public abstract class AbstractApexCodegen extends DefaultCodegen implements Code
             ArraySchema ap = (ArraySchema) p;
             Schema inner = ap.getItems();
             if (inner == null) {
-                LOGGER.warn("{}(array property) does not have a proper inner type defined", ap.getName());
+                LOGGER.warn(ap.getName() + "(array property) does not have a proper inner type defined");
                 // TODO maybe better defaulting to StringProperty than returning null
                 return null;
             }
@@ -198,7 +197,7 @@ public abstract class AbstractApexCodegen extends DefaultCodegen implements Code
             Schema inner = getAdditionalProperties(p);
 
             if (inner == null) {
-                LOGGER.warn("{}(map property) does not have a proper inner type defined", p.getName());
+                LOGGER.warn(p.getName() + "(map property) does not have a proper inner type defined");
                 // TODO maybe better defaulting to StringProperty than returning null
                 return null;
             }
@@ -409,7 +408,7 @@ public abstract class AbstractApexCodegen extends DefaultCodegen implements Code
         }
 
         if (null == schemaType) {
-            LOGGER.error("No Type defined for Property {}", p);
+            LOGGER.error("No Type defined for Property " + p);
         }
         return toModelName(schemaType);
     }
@@ -426,7 +425,7 @@ public abstract class AbstractApexCodegen extends DefaultCodegen implements Code
         // method name cannot use reserved keyword, e.g. return
         if (isReservedWord(operationId)) {
             String newOperationId = camelize("call_" + operationId, true);
-            LOGGER.warn("{} (reserved word) cannot be used as method name. Renamed to {}", operationId, newOperationId);
+            LOGGER.warn(operationId + " (reserved word) cannot be used as method name. Renamed to " + newOperationId);
             return newOperationId;
         }
 
@@ -600,15 +599,15 @@ public abstract class AbstractApexCodegen extends DefaultCodegen implements Code
 
         // Iterate over all of the parent model properties
         boolean removedChildEnum = false;
-        for (CodegenProperty parentModelCodegenProperty : parentModelCodegenProperties) {
+        for (CodegenProperty parentModelCodegenPropery : parentModelCodegenProperties) {
             // Look for enums
-            if (parentModelCodegenProperty.isEnum) {
+            if (parentModelCodegenPropery.isEnum) {
                 // Now that we have found an enum in the parent class,
                 // and search the child class for the same enum.
                 Iterator<CodegenProperty> iterator = codegenProperties.iterator();
                 while (iterator.hasNext()) {
                     CodegenProperty codegenProperty = iterator.next();
-                    if (codegenProperty.isEnum && codegenProperty.equals(parentModelCodegenProperty)) {
+                    if (codegenProperty.isEnum && codegenProperty.equals(parentModelCodegenPropery)) {
                         // We found an enum in the child class that is
                         // a duplicate of the one in the parent, so remove it.
                         iterator.remove();
@@ -643,7 +642,6 @@ public abstract class AbstractApexCodegen extends DefaultCodegen implements Code
         return p.replaceAll("\"", "%22");
     }
 
-    @Override
     public String toRegularExpression(String pattern) {
         return escapeText(pattern);
     }

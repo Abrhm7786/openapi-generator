@@ -3,7 +3,7 @@
  * @export
  * @interface {{classname}}
  */
-export interface {{classname}} {{#parent}}extends {{{.}}} {{/parent}}{
+export interface {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{
 {{#additionalPropertiesType}}
     [key: string]: {{{additionalPropertiesType}}}{{#hasVars}} | any{{/hasVars}};
 {{/additionalPropertiesType}}

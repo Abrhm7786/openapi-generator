@@ -10,7 +10,7 @@ buildscript {
     }
     dependencies {
         {{#androidGradleVersion}}
-        classpath 'com.android.tools.build:gradle:{{{.}}}'
+        classpath 'com.android.tools.build:gradle:{{{androidGradleVersion}}}'
         {{/androidGradleVersion}}
         {{^androidGradleVersion}}
         classpath 'com.android.tools.build:gradle:2.3.+'
@@ -35,13 +35,13 @@ apply plugin: 'com.github.dcendents.android-maven'
 
 android {
     {{#androidSdkVersion}}
-    compileSdkVersion {{{.}}}
+    compileSdkVersion {{{androidSdkVersion}}}
     {{/androidSdkVersion}}
     {{^androidSdkVersion}}
     compileSdkVersion 25
     {{/androidSdkVersion}}
     {{#androidBuildToolsVersion}}
-    buildToolsVersion '{{{.}}}'
+    buildToolsVersion '{{{androidBuildToolsVersion}}}'
     {{/androidBuildToolsVersion}}
     {{^androidBuildToolsVersion}}
     buildToolsVersion '25.0.2'
@@ -50,7 +50,7 @@ android {
     defaultConfig {
         minSdkVersion 14
         {{#androidSdkVersion}}
-        targetSdkVersion {{{.}}}
+        targetSdkVersion {{{androidSdkVersion}}}
         {{/androidSdkVersion}}
         {{^androidSdkVersion}}
         targetSdkVersion 25
@@ -89,7 +89,7 @@ android {
 ext {
     swagger_annotations_version = "1.5.0"
     gson_version = "2.3.1"
-    httpclient_version = "4.5.13"
+    httpclient_version = "4.5.2"
     httpcore_version = "4.4.4"
     junit_version = "4.13"
 }

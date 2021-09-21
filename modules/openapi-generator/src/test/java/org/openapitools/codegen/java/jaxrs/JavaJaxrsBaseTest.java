@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 
 import static org.openapitools.codegen.TestUtils.assertFileContains;
 import static org.openapitools.codegen.TestUtils.assertFileNotContains;
-import static org.openapitools.codegen.languages.AbstractJavaCodegen.JACKSON;
 
 public abstract class JavaJaxrsBaseTest {
 
@@ -60,7 +59,7 @@ public abstract class JavaJaxrsBaseTest {
 
     @Test
     public void doNotGenerateJsonAnnotationForPolymorphismIfJsonExclude() throws IOException {
-        codegen.additionalProperties().put(JACKSON, false);
+        codegen.additionalProperties().put("jackson", false);
         File output = Files.createTempDirectory("test").toFile().getCanonicalFile();
         output.deleteOnExit();
         String outputPath = output.getAbsolutePath().replace('\\', '/');

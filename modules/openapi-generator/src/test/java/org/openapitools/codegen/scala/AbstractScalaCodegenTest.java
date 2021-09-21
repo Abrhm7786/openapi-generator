@@ -1,7 +1,5 @@
 package org.openapitools.codegen.scala;
 
-import io.swagger.v3.oas.models.media.ObjectSchema;
-import io.swagger.v3.oas.models.media.Schema;
 import org.openapitools.codegen.CodegenConstants;
 import org.openapitools.codegen.languages.AbstractScalaCodegen;
 import org.testng.Assert;
@@ -97,21 +95,4 @@ public class AbstractScalaCodegenTest {
         Assert.assertFalse(fakeScalaCodegen.importMapping().containsKey("BigInt"),
                 "BigInt is a Scala type and must not be imported");
     }
-
-    @Test
-    void checkScalaTypeDeclaration() {
-
-        final AbstractScalaCodegen codegen = new P_AbstractScalaCodegen();
-
-        Schema<?> byteArraySchema = new ObjectSchema();
-        byteArraySchema.setType("string");
-        byteArraySchema.setFormat("byte");
-        byteArraySchema.setDescription("Schema with byte string");
-
-        Assert.assertEquals(codegen.getTypeDeclaration(byteArraySchema), "Array[Byte]",
-                "OpenApi File type represented as byte string should be represented as Array[Byte] scala type");
-
-    }
-
-
 }

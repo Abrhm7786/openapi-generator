@@ -25,11 +25,8 @@ namespace {{modelPackage}};
 class {{classname}}
 {
     {{#vars}}
-
-    /** @var {{dataType}} ${{name}} {{description}}*/
-{{#deprecated}}
-    /** @deprecated */
-{{/deprecated}}
+    
+    /** @var {{dataType}} ${{name}} {{#description}}{{description}}{{/description}}*/
     private ${{name}};
     {{/vars}}
 }

@@ -3,8 +3,7 @@
 
 import { Inject, Injectable, Optional }                      from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams,
-         HttpResponse, HttpEvent, HttpParameterCodec{{#httpContextInOptions}}, HttpContext {{/httpContextInOptions}}
-        }       from '@angular/common/http';
+         HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
@@ -29,7 +28,7 @@ import {
 {{#allParams.0}}
 export interface {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams {
 {{#allParams}}
-    {{#description}}/** {{.}} */
+    {{#description}}/** {{description}} */
     {{/description}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}{{#isNullable}} | null{{/isNullable}};
 {{/allParams}}
 }
@@ -94,16 +93,11 @@ export class {{classname}} {
 {{/hasSomeFormParams}}
 
     private addToHttpParams(httpParams: HttpParams, value: any, key?: string): HttpParams {
-        {{#isQueryParamObjectFormatJson}}
-        httpParams = this.addToHttpParamsRecursive(httpParams, value, key);
-        {{/isQueryParamObjectFormatJson}}
-        {{^isQueryParamObjectFormatJson}}
         if (typeof value === "object" && value instanceof Date === false) {
             httpParams = this.addToHttpParamsRecursive(httpParams, value);
         } else {
             httpParams = this.addToHttpParamsRecursive(httpParams, value, key);
         }
-        {{/isQueryParamObjectFormatJson}}
         return httpParams;
     }
 
@@ -142,10 +136,10 @@ export class {{classname}} {
 {{#operation}}
     /**
 {{#summary}}
-     * {{.}}
+     * {{summary}}
 {{/summary}}
 {{#notes}}
-     * {{.}}
+     * {{notes}}
 {{/notes}}
      {{^useSingleRequestParameter}}
      {{#allParams}}
@@ -163,10 +157,10 @@ export class {{classname}} {
      * @deprecated
      {{/isDeprecated}}
      */
-    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{mediaType}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}}): Observable<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>;
-    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{mediaType}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}}): Observable<HttpResponse<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>>;
-    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{mediaType}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}}): Observable<HttpEvent<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>>;
-    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: {{#produces}}'{{mediaType}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}}): Observable<any> {
+    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{mediaType}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}}}): Observable<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>;
+    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{mediaType}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}}}): Observable<HttpResponse<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>>;
+    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{mediaType}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}}}): Observable<HttpEvent<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>>;
+    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: {{#produces}}'{{mediaType}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}}}): Observable<any> {
 {{#allParams}}
 {{#useSingleRequestParameter}}
         const {{paramName}} = requestParameters.{{paramName}};
@@ -179,23 +173,23 @@ export class {{classname}} {
 {{/allParams}}
 
 {{#hasQueryParams}}
-        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        let queryParameters = new HttpParams({encoder: this.encoder});
 {{#queryParams}}
         {{#isArray}}
         if ({{paramName}}) {
         {{#isQueryParamObjectFormatJson}}
-        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+        queryParameters = this.addToHttpParams(queryParameters,
             <any>{{paramName}}, '{{baseName}}');
         {{/isQueryParamObjectFormatJson}}
         {{^isQueryParamObjectFormatJson}}
         {{#isCollectionFormatMulti}}
             {{paramName}}.forEach((element) => {
-                localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+                queryParameters = this.addToHttpParams(queryParameters,
                   <any>element, '{{baseName}}');
             })
         {{/isCollectionFormatMulti}}
         {{^isCollectionFormatMulti}}
-            localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            queryParameters = this.addToHttpParams(queryParameters,
                 {{paramName}}.join(COLLECTION_FORMATS['{{collectionFormat}}']), '{{baseName}}');
         {{/isCollectionFormatMulti}}
         {{/isQueryParamObjectFormatJson}}
@@ -203,76 +197,69 @@ export class {{classname}} {
         {{/isArray}}
         {{^isArray}}
         if ({{paramName}} !== undefined && {{paramName}} !== null) {
-          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          queryParameters = this.addToHttpParams(queryParameters,
             <any>{{paramName}}, '{{baseName}}');
         }
         {{/isArray}}
 {{/queryParams}}
 
 {{/hasQueryParams}}
-        let localVarHeaders = this.defaultHeaders;
+        let headers = this.defaultHeaders;
 {{#headerParams}}
         {{#isArray}}
         if ({{paramName}}) {
-            localVarHeaders = localVarHeaders.set('{{baseName}}', {{paramName}}.join(COLLECTION_FORMATS['{{collectionFormat}}']));
+            headers = headers.set('{{baseName}}', {{paramName}}.join(COLLECTION_FORMATS['{{collectionFormat}}']));
         }
         {{/isArray}}
         {{^isArray}}
         if ({{paramName}} !== undefined && {{paramName}} !== null) {
-            localVarHeaders = localVarHeaders.set('{{baseName}}', String({{paramName}}));
+            headers = headers.set('{{baseName}}', String({{paramName}}));
         }
         {{/isArray}}
 {{/headerParams}}
 
 {{#authMethods}}
 {{#-first}}
-        let localVarCredential: string | undefined;
+        let credential: string | undefined;
 {{/-first}}
         // authentication ({{name}}) required
-        localVarCredential = this.configuration.lookupCredential('{{name}}');
-        if (localVarCredential) {
+        credential = this.configuration.lookupCredential('{{name}}');
+        if (credential) {
 {{#isApiKey}}
     {{#isKeyInHeader}}
-            localVarHeaders = localVarHeaders.set('{{keyParamName}}', localVarCredential);
+            headers = headers.set('{{keyParamName}}', credential);
     {{/isKeyInHeader}}
     {{#isKeyInQuery}}
-            localVarQueryParameters = localVarQueryParameters.set('{{keyParamName}}', localVarCredential);
+            queryParameters = queryParameters.set('{{keyParamName}}', credential);
     {{/isKeyInQuery}}
 {{/isApiKey}}
 {{#isBasic}}
     {{#isBasicBasic}}
-            localVarHeaders = localVarHeaders.set('Authorization', 'Basic ' + localVarCredential);
+            headers = headers.set('Authorization', 'Basic ' + credential);
     {{/isBasicBasic}}
     {{#isBasicBearer}}
-            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+            headers = headers.set('Authorization', 'Bearer ' + credential);
     {{/isBasicBearer}}
 {{/isBasic}}
 {{#isOAuth}}
-            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+            headers = headers.set('Authorization', 'Bearer ' + credential);
 {{/isOAuth}}
         }
 
 {{/authMethods}}
-        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
-        if (localVarHttpHeaderAcceptSelected === undefined) {
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
             // to determine the Accept header
             const httpHeaderAccepts: string[] = [
                 {{#produces}}
                 '{{{mediaType}}}'{{^-last}},{{/-last}}
                 {{/produces}}
             ];
-            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
         }
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
         }
-
-{{#httpContextInOptions}}
-        let localVarHttpContext: HttpContext | undefined = options && options.context;
-        if (localVarHttpContext === undefined) {
-            localVarHttpContext = new HttpContext();
-        }
-{{/httpContextInOptions}}
 
 {{#bodyParam}}
 {{- duplicated below, don't forget to change}}
@@ -296,71 +283,68 @@ export class {{classname}} {
 {{#bodyParam}}
         const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
         if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+            headers = headers.set('Content-Type', httpContentTypeSelected);
         }
 {{/bodyParam}}
 
 {{#hasFormParams}}
         const canConsumeForm = this.canConsumeForm(consumes);
 
-        let localVarFormParams: { append(param: string, value: any): any; };
-        let localVarUseForm = false;
-        let localVarConvertFormParamsToString = false;
-{{#localVarFormParams}}
+        let formParams: { append(param: string, value: any): any; };
+        let useForm = false;
+        let convertFormParamsToString = false;
+{{#formParams}}
 {{#isFile}}
         // use FormData to transmit files using content-type "multipart/form-data"
         // see https://stackoverflow.com/questions/4007969/application-x-www-form-urlencoded-or-multipart-form-data
-        localVarUseForm = canConsumeForm;
+        useForm = canConsumeForm;
 {{/isFile}}
-{{/localVarFormParams}}
-        if (localVarUseForm) {
-            localVarFormParams = new FormData();
+{{/formParams}}
+        if (useForm) {
+            formParams = new FormData();
         } else {
-            localVarFormParams = new HttpParams({encoder: this.encoder});
+            formParams = new HttpParams({encoder: this.encoder});
         }
 
-{{#localVarFormParams}}
+{{#formParams}}
         {{#isArray}}
         if ({{paramName}}) {
         {{#isCollectionFormatMulti}}
             {{paramName}}.forEach((element) => {
-                localVarFormParams = localVarFormParams.append('{{baseName}}', <any>element) as any || localVarFormParams;
+                formParams = formParams.append('{{baseName}}', <any>element) as any || formParams;
             })
         {{/isCollectionFormatMulti}}
         {{^isCollectionFormatMulti}}
-            if (localVarUseForm) {
+            if (useForm) {
                 {{paramName}}.forEach((element) => {
-                    localVarFormParams = localVarFormParams.append('{{baseName}}', <any>element) as any || localVarFormParams;
+                    formParams = formParams.append('{{baseName}}', <any>element) as any || formParams;
             })
             } else {
-                localVarFormParams = localVarFormParams.append('{{baseName}}', {{paramName}}.join(COLLECTION_FORMATS['{{collectionFormat}}'])) as any || localVarFormParams;
+                formParams = formParams.append('{{baseName}}', {{paramName}}.join(COLLECTION_FORMATS['{{collectionFormat}}'])) as any || formParams;
             }
         {{/isCollectionFormatMulti}}
         }
         {{/isArray}}
         {{^isArray}}
         if ({{paramName}} !== undefined) {
-            localVarFormParams = localVarFormParams.append('{{baseName}}', {{^isModel}}<any>{{paramName}}{{/isModel}}{{#isModel}}localVarUseForm ? new Blob([JSON.stringify({{paramName}})], {type: 'application/json'}) : <any>{{paramName}}{{/isModel}}) as any || localVarFormParams;
+            formParams = formParams.append('{{baseName}}', {{^isModel}}<any>{{paramName}}{{/isModel}}{{#isModel}}useForm ? new Blob([JSON.stringify({{paramName}})], {type: 'application/json'}) : <any>{{paramName}}{{/isModel}}) as any || formParams;
         }
         {{/isArray}}
-{{/localVarFormParams}}
+{{/formParams}}
 
 {{/hasFormParams}}
     {{^isResponseFile}}
         let responseType_: 'text' | 'json' = 'json';
-        if(localVarHttpHeaderAcceptSelected && localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
             responseType_ = 'text';
         }
 
     {{/isResponseFile}}
         return this.httpClient.{{httpMethod}}{{^isResponseFile}}<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>{{/isResponseFile}}(`${this.configuration.basePath}{{{path}}}`,{{#isBodyAllowed}}
-            {{#bodyParam}}{{paramName}}{{/bodyParam}}{{^bodyParam}}{{#hasFormParams}}localVarConvertFormParamsToString ? localVarFormParams.toString() : localVarFormParams{{/hasFormParams}}{{^hasFormParams}}null{{/hasFormParams}}{{/bodyParam}},{{/isBodyAllowed}}
+            {{#bodyParam}}{{paramName}}{{/bodyParam}}{{^bodyParam}}{{#hasFormParams}}convertFormParamsToString ? formParams.toString() : formParams{{/hasFormParams}}{{^hasFormParams}}null{{/hasFormParams}}{{/bodyParam}},{{/isBodyAllowed}}
             {
-    {{#httpContextInOptions}}
-                context: localVarHttpContext,
-    {{/httpContextInOptions}}
     {{#hasQueryParams}}
-                params: localVarQueryParameters,
+                params: queryParameters,
     {{/hasQueryParams}}
     {{#isResponseFile}}
                 responseType: "blob",
@@ -369,7 +353,7 @@ export class {{classname}} {
                 responseType: <any>responseType_,
     {{/isResponseFile}}
                 withCredentials: this.configuration.withCredentials,
-                headers: localVarHeaders,
+                headers: headers,
                 observe: observe,
                 reportProgress: reportProgress
             }
