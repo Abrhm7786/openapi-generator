@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,13 +19,11 @@ package org.openapitools.codegen.online.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.parser.OpenAPIParser;
-import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.AuthorizationValue;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import org.openapitools.codegen.CliOption;
 import org.openapitools.codegen.ClientOptInput;
-import org.openapitools.codegen.ClientOpts;
 import org.openapitools.codegen.CodegenConfig;
 import org.openapitools.codegen.CodegenConfigLoader;
 import org.openapitools.codegen.DefaultGenerator;
@@ -36,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -129,11 +128,10 @@ public class Generator {
         }
 
         ClientOptInput clientOptInput = new ClientOptInput();
-        ClientOpts clientOpts = new ClientOpts();
         String outputFolder = getTmpFolder().getAbsolutePath() + File.separator + destPath;
         String outputFilename = outputFolder + "-bundle.zip";
 
-        clientOptInput.opts(clientOpts).openAPI(openapi);
+        clientOptInput.openAPI(openapi);
 
         CodegenConfig codegenConfig;
         try {
@@ -149,15 +147,13 @@ public class Generator {
 
         codegenConfig.setOutputDir(outputFolder);
 
-        LOGGER.debug(Json.pretty(clientOpts));
-
-        clientOptInput.setConfig(codegenConfig);
+        clientOptInput.config(codegenConfig);
 
         try {
             List<File> files = new DefaultGenerator().opts(clientOptInput).generate();
             if (files.size() > 0) {
                 List<File> filesToAdd = new ArrayList<>();
-                LOGGER.debug("adding to " + outputFolder);
+                LOGGER.debug("adding to {}", outputFolder);
                 filesToAdd.add(new File(outputFolder));
                 ZipUtil zip = new ZipUtil();
                 zip.compressFiles(filesToAdd, outputFilename);
@@ -185,14 +181,12 @@ public class Generator {
 
     private static File getTmpFolder() {
         try {
-            File outputFolder = File.createTempFile("codegen-", "-tmp");
-            outputFolder.delete();
-            outputFolder.mkdir();
+            File outputFolder = Files.createTempDirectory("codegen-tmp").toFile();
             outputFolder.deleteOnExit();
             return outputFolder;
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            throw new RuntimeException("Cannot access tmp folder");
         }
     }
 }

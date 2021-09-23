@@ -1,7 +1,10 @@
 
+
 # User
 
+
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **Long** |  |  [optional]
@@ -13,5 +16,9 @@ Name | Type | Description | Notes
 **phone** | **String** |  |  [optional]
 **userStatus** | **Integer** | User Status |  [optional]
 
+
+## Implemented Interfaces
+
+* Parcelable
 
 

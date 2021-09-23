@@ -6,6 +6,7 @@ import org.openapitools.client.EncodingUtils;
 import java.io.File;
 import org.openapitools.client.model.ModelApiResponse;
 import org.openapitools.client.model.Pet;
+import java.util.Set;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,21 +14,21 @@ import java.util.List;
 import java.util.Map;
 import feign.*;
 
-
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen")
 public interface PetApi extends ApiClient.Api {
 
 
   /**
    * Add a new pet to the store
    * 
-   * @param body Pet object that needs to be added to the store (required)
+   * @param pet Pet object that needs to be added to the store (required)
    */
   @RequestLine("POST /pet")
   @Headers({
     "Content-Type: application/json",
     "Accept: application/json",
   })
-  void addPet(Pet body);
+  void addPet(Pet pet);
 
   /**
    * Deletes a pet
@@ -90,13 +91,15 @@ public interface PetApi extends ApiClient.Api {
    * Finds Pets by tags
    * Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.
    * @param tags Tags to filter by (required)
-   * @return List&lt;Pet&gt;
+   * @return Set&lt;Pet&gt;
+   * @deprecated
    */
+  @Deprecated
   @RequestLine("GET /pet/findByTags?tags={tags}")
   @Headers({
     "Accept: application/json",
   })
-  List<Pet> findPetsByTags(@Param("tags") List<String> tags);
+  Set<Pet> findPetsByTags(@Param("tags") Set<String> tags);
 
   /**
    * Finds Pets by tags
@@ -111,20 +114,22 @@ public interface PetApi extends ApiClient.Api {
    *   <ul>
    *   <li>tags - Tags to filter by (required)</li>
    *   </ul>
-   * @return List&lt;Pet&gt;
+   * @return Set&lt;Pet&gt;
+   * @deprecated
    */
+  @Deprecated
   @RequestLine("GET /pet/findByTags?tags={tags}")
   @Headers({
   "Accept: application/json",
   })
-  List<Pet> findPetsByTags(@QueryMap(encoded=true) Map<String, Object> queryParams);
+  Set<Pet> findPetsByTags(@QueryMap(encoded=true) Map<String, Object> queryParams);
 
   /**
    * A convenience class for generating query parameters for the
    * <code>findPetsByTags</code> method in a fluent style.
    */
   public static class FindPetsByTagsQueryParams extends HashMap<String, Object> {
-    public FindPetsByTagsQueryParams tags(final List<String> value) {
+    public FindPetsByTagsQueryParams tags(final Set<String> value) {
       put("tags", EncodingUtils.encodeCollection(value, "csv"));
       return this;
     }
@@ -145,14 +150,14 @@ public interface PetApi extends ApiClient.Api {
   /**
    * Update an existing pet
    * 
-   * @param body Pet object that needs to be added to the store (required)
+   * @param pet Pet object that needs to be added to the store (required)
    */
   @RequestLine("PUT /pet")
   @Headers({
     "Content-Type: application/json",
     "Accept: application/json",
   })
-  void updatePet(Pet body);
+  void updatePet(Pet pet);
 
   /**
    * Updates a pet in the store with form data

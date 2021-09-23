@@ -1,6 +1,5 @@
 package apimodels;
 
-import apimodels.StringBooleanMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +11,12 @@ import javax.validation.constraints.*;
 /**
  * MapTest
  */
-
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaPlayFrameworkCodegen")
 @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 public class MapTest   {
   @JsonProperty("map_map_of_string")
+  @Valid
+
   private Map<String, Map<String, String>> mapMapOfString = null;
 
   /**
@@ -39,24 +40,27 @@ public class MapTest   {
     }
 
     @JsonCreator
-    public static InnerEnum fromValue(String text) {
+    public static InnerEnum fromValue(String value) {
       for (InnerEnum b : InnerEnum.values()) {
-        if (String.valueOf(b.value).equals(text)) {
+        if (b.value.equals(value)) {
           return b;
         }
       }
-      return null;
+      throw new IllegalArgumentException("Unexpected value '" + value + "'");
     }
   }
- 
+
   @JsonProperty("map_of_enum_string")
+  
   private Map<String, InnerEnum> mapOfEnumString = null;
 
   @JsonProperty("direct_map")
+  
   private Map<String, Boolean> directMap = null;
 
   @JsonProperty("indirect_map")
-  private StringBooleanMap indirectMap = null;
+  
+  private Map<String, Boolean> indirectMap = null;
 
   public MapTest mapMapOfString(Map<String, Map<String, String>> mapMapOfString) {
     this.mapMapOfString = mapMapOfString;
@@ -75,7 +79,6 @@ public class MapTest   {
    * Get mapMapOfString
    * @return mapMapOfString
   **/
-  @Valid
   public Map<String, Map<String, String>> getMapMapOfString() {
     return mapMapOfString;
   }
@@ -101,7 +104,7 @@ public class MapTest   {
    * Get mapOfEnumString
    * @return mapOfEnumString
   **/
-    public Map<String, InnerEnum> getMapOfEnumString() {
+  public Map<String, InnerEnum> getMapOfEnumString() {
     return mapOfEnumString;
   }
 
@@ -126,7 +129,7 @@ public class MapTest   {
    * Get directMap
    * @return directMap
   **/
-    public Map<String, Boolean> getDirectMap() {
+  public Map<String, Boolean> getDirectMap() {
     return directMap;
   }
 
@@ -134,8 +137,16 @@ public class MapTest   {
     this.directMap = directMap;
   }
 
-  public MapTest indirectMap(StringBooleanMap indirectMap) {
+  public MapTest indirectMap(Map<String, Boolean> indirectMap) {
     this.indirectMap = indirectMap;
+    return this;
+  }
+
+  public MapTest putIndirectMapItem(String key, Boolean indirectMapItem) {
+    if (this.indirectMap == null) {
+      this.indirectMap = new HashMap<>();
+    }
+    this.indirectMap.put(key, indirectMapItem);
     return this;
   }
 
@@ -143,18 +154,17 @@ public class MapTest   {
    * Get indirectMap
    * @return indirectMap
   **/
-  @Valid
-  public StringBooleanMap getIndirectMap() {
+  public Map<String, Boolean> getIndirectMap() {
     return indirectMap;
   }
 
-  public void setIndirectMap(StringBooleanMap indirectMap) {
+  public void setIndirectMap(Map<String, Boolean> indirectMap) {
     this.indirectMap = indirectMap;
   }
 
 
   @Override
-  public boolean equals(java.lang.Object o) {
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
@@ -191,7 +201,7 @@ public class MapTest   {
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).
    */
-  private String toIndentedString(java.lang.Object o) {
+  private String toIndentedString(Object o) {
     if (o == null) {
       return "null";
     }

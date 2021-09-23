@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,22 +17,51 @@
 
 package org.openapitools.codegen.languages;
 
-import org.openapitools.codegen.CliOption;
-import org.openapitools.codegen.CodegenType;
-import org.openapitools.codegen.SupportingFile;
+import static org.openapitools.codegen.utils.StringUtils.camelize;
 
 import java.io.File;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
-import static org.openapitools.codegen.utils.StringUtils.camelize;
+import org.openapitools.codegen.CodegenConstants;
+import org.openapitools.codegen.CodegenOperation;
+import org.openapitools.codegen.CodegenType;
+import org.openapitools.codegen.SupportingFile;
+import org.openapitools.codegen.meta.features.ClientModificationFeature;
+import org.openapitools.codegen.meta.features.DocumentationFeature;
+import org.openapitools.codegen.meta.features.GlobalFeature;
+import org.openapitools.codegen.meta.features.ParameterFeature;
+import org.openapitools.codegen.meta.features.SchemaSupportFeature;
+import org.openapitools.codegen.meta.features.SecurityFeature;
+import org.openapitools.codegen.meta.features.WireFormatFeature;
 
 
 public class GroovyClientCodegen extends AbstractJavaCodegen {
-    public static final String CONFIG_PACKAGE = "configPackage";
-    protected String title = "Petstore Server";
-    protected String configPackage = "";
 
     public GroovyClientCodegen() {
         super();
+
+        modifyFeatureSet(features -> features
+                .includeDocumentationFeatures(DocumentationFeature.Readme)
+                .wireFormatFeatures(EnumSet.of(WireFormatFeature.JSON))
+                .securityFeatures(EnumSet.noneOf(SecurityFeature.class))
+                .excludeGlobalFeatures(
+                        GlobalFeature.XMLStructureDefinitions,
+                        GlobalFeature.Callbacks,
+                        GlobalFeature.LinkObjects,
+                        GlobalFeature.ParameterStyling
+                )
+                .excludeSchemaSupportFeatures(
+                        SchemaSupportFeature.Polymorphism
+                )
+                .excludeParameterFeatures(
+                        ParameterFeature.Cookie
+                )
+                .includeClientModificationFeatures(
+                        ClientModificationFeature.BasePath
+                )
+        );
 
         // avoid importing the following as models
         languageSpecificPrimitives.add("Date");
@@ -40,7 +69,8 @@ public class GroovyClientCodegen extends AbstractJavaCodegen {
         languageSpecificPrimitives.add("File");
         languageSpecificPrimitives.add("Map");
 
-        sourceFolder = projectFolder + File.separator + "groovy";
+        // this must not be OS-specific
+        sourceFolder = projectFolder + "/groovy";
         outputFolder = "generated-code/groovy";
         modelTemplateFiles.put("model.mustache", ".groovy");
         apiTemplateFiles.put("api.mustache", ".groovy");
@@ -55,15 +85,20 @@ public class GroovyClientCodegen extends AbstractJavaCodegen {
 
         apiPackage = "org.openapitools.api";
         modelPackage = "org.openapitools.model";
-        configPackage = "org.openapitools.configuration";
         invokerPackage = "org.openapitools.api";
         artifactId = "openapi-groovy";
         dateLibrary = "legacy"; //TODO: add joda support to groovy
 
-        additionalProperties.put("title", title);
-        additionalProperties.put(CONFIG_PACKAGE, configPackage);
+        // cliOptions default redefinition need to be updated
+        updateOption(CodegenConstants.SOURCE_FOLDER, this.getSourceFolder());
+        updateOption(CodegenConstants.INVOKER_PACKAGE, this.getInvokerPackage());
+        updateOption(CodegenConstants.ARTIFACT_ID, this.getArtifactId());
+        updateOption(CodegenConstants.API_PACKAGE, apiPackage);
+        updateOption(CodegenConstants.MODEL_PACKAGE, modelPackage);
+        updateOption(DATE_LIBRARY, this.getDateLibrary());
+        removeOption(CodegenConstants.ARTIFACT_URL);
+        removeOption(CodegenConstants.ARTIFACT_DESCRIPTION);
 
-        cliOptions.add(new CliOption(CONFIG_PACKAGE, "configuration package for generated code"));
     }
 
     @Override
@@ -78,23 +113,29 @@ public class GroovyClientCodegen extends AbstractJavaCodegen {
 
     @Override
     public String getHelp() {
-        return "Generates a Groovy API client (beta).";
+        return "Generates a Groovy API client.";
     }
 
     @Override
     public void processOpts() {
         super.processOpts();
 
-        if (additionalProperties.containsKey(CONFIG_PACKAGE)) {
-            this.setConfigPackage((String) additionalProperties.get(CONFIG_PACKAGE));
-        }
-
         supportingFiles.add(new SupportingFile("build.gradle.mustache", "", "build.gradle"));
-        // TODO readme to be added later
-        //supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
+        supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
         supportingFiles.add(new SupportingFile("ApiUtils.mustache",
                 (sourceFolder + File.separator + apiPackage).replace(".", java.io.File.separator), "ApiUtils.groovy"));
 
+    }
+
+    @Override
+    public Map<String, Object> postProcessOperationsWithModels(Map<String, Object> operations, List<Object> allModels) {
+        Map<String, Object> objs = (Map<String, Object>) operations.get("operations");
+        List<CodegenOperation> ops = (List<CodegenOperation>) objs.get("operation");
+        for (CodegenOperation op : ops) {
+            // Overwrite path to map variable with path parameters
+            op.path = op.path.replace("{", "${");
+        }
+        return operations;
     }
 
     @Override
@@ -104,10 +145,6 @@ public class GroovyClientCodegen extends AbstractJavaCodegen {
         }
         name = sanitizeName(name);
         return camelize(name) + "Api";
-    }
-
-    public void setConfigPackage(String configPackage) {
-        this.configPackage = configPackage;
     }
 
     @Override

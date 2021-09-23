@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@ public class CliOption {
     private String description;
     private String type;
     private String defaultValue;
+    private String optValue;
     private Map<String, String> enumValues;
 
     public CliOption(String opt, String description) {
@@ -73,6 +74,18 @@ public class CliOption {
         return this;
     }
 
+    public String getOptValue() {
+        return this.optValue;
+    }
+
+    public void setOptValue(String optValue) {
+        if (this.enumValues!=null && this.enumValues.containsKey(optValue)) {
+            this.optValue = optValue;
+        } else {
+            this.optValue = null;
+        }
+    }
+
     public CliOption addEnum(String value, String description) {
         if (this.enumValues == null) {
             this.enumValues = new LinkedHashMap<String, String>();
@@ -93,7 +106,7 @@ public class CliOption {
 
     /**
      * Create new boolean command line option with a default of false
-     * 
+     *
      * @param opt Option name
      * @param description Option description
      * @return the CliOption created
@@ -104,7 +117,7 @@ public class CliOption {
 
     /**
      * Create new boolean command line option with the provided value as default
-     * 
+     *
      * @param opt Option name
      * @param description Option description
      * @param defaultValue the default value to use if option not specified

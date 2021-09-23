@@ -38,7 +38,7 @@
                 <version>${jetty-version}</version>
                 <configuration>
                     <webAppConfig>
-                        <contextPath>{{^contextPath}}/{{/contextPath}}{{#contextPath}}{{contextPath}}{{/contextPath}}</contextPath>
+                        <contextPath>{{contextPath}}{{^contextPath}}/{{/contextPath}}</contextPath>
                     </webAppConfig>
                     <webAppSourceDirectory>target/${project.artifactId}-${project.version}</webAppSourceDirectory>
                     <stopPort>8079</stopPort>
@@ -137,6 +137,16 @@
             <artifactId>spring-web</artifactId>
             <version>${spring-version}</version>
         </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.2.11</version>
+        </dependency>
         {{#useSpringfox}}
         <!--SpringFox dependencies-->
         <dependency>
@@ -158,6 +168,17 @@
         {{/useSpringfox}}
         {{^useSpringfox}}
         <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${springfox-version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>swagger-ui</artifactId>
             <version>3.14.2</version>
@@ -166,6 +187,12 @@
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
             <version>1.5.14</version>
+        </dependency>
+        <!-- @Nullable annotation -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -202,11 +229,13 @@
             <version>${jackson-threetenbp-version}</version>
         </dependency>
         {{/threetenbp}}
+        {{#openApiNullable}}
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
-            <version>0.1.0</version>
+            <version>${jackson-databind-nullable-version}</version>
         </dependency>
+        {{/openApiNullable}}
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -232,9 +261,19 @@
         <dependency>
             <groupId>org.springframework.hateoas</groupId>
             <artifactId>spring-hateoas</artifactId>
-            <version>0.25.0.RELEASE</version>
+            <version>1.0.1.RELEASE</version>
         </dependency>
 {{/hateoas}}
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+            <version>2.0.11.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson-databind-version}</version>
+        </dependency>
     </dependencies>
     <properties>
         <java.version>{{#java8}}1.8{{/java8}}{{^java8}}1.7{{/java8}}</java.version>
@@ -242,14 +281,18 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <jetty-version>9.2.15.v20160210</jetty-version>
         <slf4j-version>1.7.21</slf4j-version>
-        <junit-version>4.12</junit-version>
+        <junit-version>4.13.1</junit-version>
         <servlet-api-version>2.5</servlet-api-version>
         <springfox-version>2.8.0</springfox-version>
-        <jackson-version>2.9.5</jackson-version>
+        <jackson-version>2.9.9</jackson-version>
         <jackson-threetenbp-version>2.8.4</jackson-threetenbp-version>
 {{#useBeanValidation}}
         <beanvalidation-version>1.1.0.Final</beanvalidation-version>
 {{/useBeanValidation}}
         <spring-version>4.3.20.RELEASE</spring-version>
+        {{#openApiNullable}}
+        <jackson-databind-nullable-version>0.2.1</jackson-databind-nullable-version>
+        {{/openApiNullable}}
+        <jackson-databind-version>2.9.8</jackson-databind-version>
     </properties>
 </project>

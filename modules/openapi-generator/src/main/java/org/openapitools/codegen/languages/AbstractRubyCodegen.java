@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,14 +27,21 @@ import org.openapitools.codegen.utils.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Locale;
 
 import static org.openapitools.codegen.utils.StringUtils.underscore;
 
 abstract public class AbstractRubyCodegen extends DefaultCodegen implements CodegenConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRubyCodegen.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(AbstractRubyCodegen.class);
 
     public AbstractRubyCodegen() {
         super();
@@ -50,10 +57,11 @@ abstract public class AbstractRubyCodegen extends DefaultCodegen implements Code
 
         languageSpecificPrimitives.clear();
         languageSpecificPrimitives.add("String");
+        languageSpecificPrimitives.add("Boolean");
         languageSpecificPrimitives.add("Integer");
         languageSpecificPrimitives.add("Float");
         languageSpecificPrimitives.add("Date");
-        languageSpecificPrimitives.add("DateTime");
+        languageSpecificPrimitives.add("Time");
         languageSpecificPrimitives.add("Array");
         languageSpecificPrimitives.add("Hash");
         languageSpecificPrimitives.add("File");
@@ -61,6 +69,7 @@ abstract public class AbstractRubyCodegen extends DefaultCodegen implements Code
 
         typeMapping.clear();
         typeMapping.put("string", "String");
+        typeMapping.put("boolean", "Boolean");
         typeMapping.put("char", "String");
         typeMapping.put("int", "Integer");
         typeMapping.put("integer", "Integer");
@@ -70,15 +79,22 @@ abstract public class AbstractRubyCodegen extends DefaultCodegen implements Code
         typeMapping.put("double", "Float");
         typeMapping.put("number", "Float");
         typeMapping.put("date", "Date");
-        typeMapping.put("DateTime", "DateTime");
+        typeMapping.put("DateTime", "Time");
         typeMapping.put("array", "Array");
+        typeMapping.put("set", "Array");
         typeMapping.put("List", "Array");
         typeMapping.put("map", "Hash");
         typeMapping.put("object", "Object");
+        typeMapping.put("AnyType", "Object");
         typeMapping.put("file", "File");
         typeMapping.put("binary", "String");
         typeMapping.put("ByteArray", "String");
         typeMapping.put("UUID", "String");
+        typeMapping.put("URI", "String");
+
+        instantiationTypes.put("map", "Hash");
+        instantiationTypes.put("array", "Array");
+        instantiationTypes.put("set", "Set");
     }
 
     @Override
@@ -104,7 +120,7 @@ abstract public class AbstractRubyCodegen extends DefaultCodegen implements Code
             Schema inner = ((ArraySchema) schema).getItems();
             return getSchemaType(schema) + "<" + getTypeDeclaration(inner) + ">";
         } else if (ModelUtils.isMapSchema(schema)) {
-            Schema inner = ModelUtils.getAdditionalProperties(schema);
+            Schema inner = getAdditionalProperties(schema);
             return getSchemaType(schema) + "<String, " + getTypeDeclaration(inner) + ">";
         }
 
@@ -112,14 +128,39 @@ abstract public class AbstractRubyCodegen extends DefaultCodegen implements Code
     }
 
     @Override
+    public String toInstantiationType(Schema schema) {
+        if (ModelUtils.isMapSchema(schema)) {
+            return instantiationTypes.get("map");
+        } else if (ModelUtils.isArraySchema(schema)) {
+            String parentType;
+            if (ModelUtils.isSet(schema)) {
+                parentType = "set";
+            } else {
+                parentType = "array";
+            }
+            return instantiationTypes.get(parentType);
+        }
+        return super.toInstantiationType(schema);
+    }
+
+    @Override
     public String toDefaultValue(Schema p) {
+        p = ModelUtils.getReferencedSchema(this.openAPI, p);
         if (ModelUtils.isIntegerSchema(p) || ModelUtils.isNumberSchema(p) || ModelUtils.isBooleanSchema(p)) {
             if (p.getDefault() != null) {
                 return p.getDefault().toString();
             }
         } else if (ModelUtils.isStringSchema(p)) {
             if (p.getDefault() != null) {
-                return "'" + escapeText((String) p.getDefault()) + "'";
+                if (p.getDefault() instanceof Date) {
+                    Date date = (Date) p.getDefault();
+                    LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    return "Date.parse(\"" + String.format(Locale.ROOT, localDate.toString(), "") + "\")";
+                } else if (p.getDefault() instanceof java.time.OffsetDateTime) {
+                    return "Time.parse(\"" + String.format(Locale.ROOT, ((java.time.OffsetDateTime) p.getDefault()).atZoneSameInstant(ZoneId.systemDefault()).toString(), "") + "\")";
+                } else {
+                    return "'" + escapeText((String) p.getDefault()) + "'";
+                }
             }
         }
 
@@ -127,26 +168,31 @@ abstract public class AbstractRubyCodegen extends DefaultCodegen implements Code
     }
 
     @Override
-    public String toVarName(String name) {
-        // sanitize name
-        name = sanitizeName(name); // FIXME: a parameter should not be assigned. Also declare the methods parameters as 'final'.
-        // if it's all uppper case, convert to lower case
+    public String toEnumDefaultValue(String value, String datatype) {
+        return datatype + "::" + value;
+    }
+
+    @Override
+    public String toVarName(final String name) {
+        String varName = sanitizeName(name);
+        // if it's all upper case, convert to lower case
         if (name.matches("^[A-Z_]*$")) {
-            name = name.toLowerCase(Locale.ROOT);
+            varName = varName.toLowerCase(Locale.ROOT);
         }
 
         // camelize (lower first character) the variable name
         // petId => pet_id
-        name = underscore(name);
+        varName = underscore(varName);
 
         // for reserved word or word starting with number, append _
-        if (isReservedWord(name) || name.matches("^\\d.*")) {
-            name = escapeReservedWord(name);
+        if (isReservedWord(varName) || varName.matches("^\\d.*")) {
+            varName = escapeReservedWord(varName);
         }
 
-        return name;
+        return varName;
     }
 
+    @Override
     public String toRegularExpression(String pattern) {
         return addRegularExpressionDelimiter(pattern);
     }
@@ -162,7 +208,7 @@ abstract public class AbstractRubyCodegen extends DefaultCodegen implements Code
         // method name cannot use reserved keyword, e.g. return
         if (isReservedWord(operationId)) {
             String newOperationId = underscore("call_" + operationId);
-            LOGGER.warn(operationId + " (reserved word) cannot be used as method name. Renamed to " + newOperationId);
+            LOGGER.warn("{} (reserved word) cannot be used as method name. Renamed to {}", operationId, newOperationId);
             return newOperationId;
         }
 
@@ -196,12 +242,21 @@ abstract public class AbstractRubyCodegen extends DefaultCodegen implements Code
                 Process p = Runtime.getRuntime().exec(command);
                 int exitValue = p.waitFor();
                 if (exitValue != 0) {
-                    LOGGER.error("Error running the command ({}). Exit value: {}", command, exitValue);
+                    try(BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream(), StandardCharsets.UTF_8))) {
+                        StringBuilder sb = new StringBuilder();
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            sb.append(line);
+                        }
+                        LOGGER.error("Error running the command ({}). Exit value: {}, Error output: {}", command, exitValue, sb.toString());
+                    }
                 } else {
-                    LOGGER.info("Successfully executed: " + command);
+                    LOGGER.info("Successfully executed: `{}`", command);
                 }
-            } catch (Exception e) {
+            } catch (InterruptedException | IOException e) {
                 LOGGER.error("Error running the command ({}). Exception: {}", command, e.getMessage());
+                // Restore interrupted state
+                Thread.currentThread().interrupt();
             }
         }
     }

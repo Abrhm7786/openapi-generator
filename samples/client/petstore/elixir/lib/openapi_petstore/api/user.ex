@@ -22,8 +22,8 @@ defmodule OpenapiPetstore.Api.User do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %{}} on success
-  {:error, info} on failure
+  {:ok, nil} on success
+  {:error, Tesla.Env.t} on failure
   """
   @spec create_user(Tesla.Env.client, OpenapiPetstore.Model.User.t, keyword()) :: {:ok, nil} | {:error, Tesla.Env.t}
   def create_user(connection, user, _opts \\ []) do
@@ -33,7 +33,9 @@ defmodule OpenapiPetstore.Api.User do
     |> add_param(:body, :body, user)
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(false)
+    |> evaluate_response([
+      { :default, false}
+    ])
   end
 
   @doc """
@@ -42,12 +44,12 @@ defmodule OpenapiPetstore.Api.User do
   ## Parameters
 
   - connection (OpenapiPetstore.Connection): Connection to server
-  - user ([User]): List of user object
+  - user ([OpenapiPetstore.Model.User.t]): List of user object
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %{}} on success
-  {:error, info} on failure
+  {:ok, nil} on success
+  {:error, Tesla.Env.t} on failure
   """
   @spec create_users_with_array_input(Tesla.Env.client, list(OpenapiPetstore.Model.User.t), keyword()) :: {:ok, nil} | {:error, Tesla.Env.t}
   def create_users_with_array_input(connection, user, _opts \\ []) do
@@ -57,7 +59,9 @@ defmodule OpenapiPetstore.Api.User do
     |> add_param(:body, :body, user)
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(false)
+    |> evaluate_response([
+      { :default, false}
+    ])
   end
 
   @doc """
@@ -66,12 +70,12 @@ defmodule OpenapiPetstore.Api.User do
   ## Parameters
 
   - connection (OpenapiPetstore.Connection): Connection to server
-  - user ([User]): List of user object
+  - user ([OpenapiPetstore.Model.User.t]): List of user object
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %{}} on success
-  {:error, info} on failure
+  {:ok, nil} on success
+  {:error, Tesla.Env.t} on failure
   """
   @spec create_users_with_list_input(Tesla.Env.client, list(OpenapiPetstore.Model.User.t), keyword()) :: {:ok, nil} | {:error, Tesla.Env.t}
   def create_users_with_list_input(connection, user, _opts \\ []) do
@@ -81,7 +85,9 @@ defmodule OpenapiPetstore.Api.User do
     |> add_param(:body, :body, user)
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(false)
+    |> evaluate_response([
+      { :default, false}
+    ])
   end
 
   @doc """
@@ -95,8 +101,8 @@ defmodule OpenapiPetstore.Api.User do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %{}} on success
-  {:error, info} on failure
+  {:ok, nil} on success
+  {:error, Tesla.Env.t} on failure
   """
   @spec delete_user(Tesla.Env.client, String.t, keyword()) :: {:ok, nil} | {:error, Tesla.Env.t}
   def delete_user(connection, username, _opts \\ []) do
@@ -105,7 +111,10 @@ defmodule OpenapiPetstore.Api.User do
     |> url("/user/#{username}")
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(false)
+    |> evaluate_response([
+      { 400, false},
+      { 404, false}
+    ])
   end
 
   @doc """
@@ -118,17 +127,21 @@ defmodule OpenapiPetstore.Api.User do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %OpenapiPetstore.Model.User{}} on success
-  {:error, info} on failure
+  {:ok, OpenapiPetstore.Model.User.t} on success
+  {:error, Tesla.Env.t} on failure
   """
-  @spec get_user_by_name(Tesla.Env.client, String.t, keyword()) :: {:ok, OpenapiPetstore.Model.User.t} | {:error, Tesla.Env.t}
+  @spec get_user_by_name(Tesla.Env.client, String.t, keyword()) :: {:ok, nil} | {:ok, OpenapiPetstore.Model.User.t} | {:error, Tesla.Env.t}
   def get_user_by_name(connection, username, _opts \\ []) do
     %{}
     |> method(:get)
     |> url("/user/#{username}")
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(%OpenapiPetstore.Model.User{})
+    |> evaluate_response([
+      { 200, %OpenapiPetstore.Model.User{}},
+      { 400, false},
+      { 404, false}
+    ])
   end
 
   @doc """
@@ -142,10 +155,10 @@ defmodule OpenapiPetstore.Api.User do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %OpenapiPetstore.Model.String.t{}} on success
-  {:error, info} on failure
+  {:ok, String.t} on success
+  {:error, Tesla.Env.t} on failure
   """
-  @spec login_user(Tesla.Env.client, String.t, String.t, keyword()) :: {:ok, String.t} | {:error, Tesla.Env.t}
+  @spec login_user(Tesla.Env.client, String.t, String.t, keyword()) :: {:ok, nil} | {:ok, String.t} | {:error, Tesla.Env.t}
   def login_user(connection, username, password, _opts \\ []) do
     %{}
     |> method(:get)
@@ -154,7 +167,10 @@ defmodule OpenapiPetstore.Api.User do
     |> add_param(:query, :"password", password)
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(false)
+    |> evaluate_response([
+      { 200, false},
+      { 400, false}
+    ])
   end
 
   @doc """
@@ -166,8 +182,8 @@ defmodule OpenapiPetstore.Api.User do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %{}} on success
-  {:error, info} on failure
+  {:ok, nil} on success
+  {:error, Tesla.Env.t} on failure
   """
   @spec logout_user(Tesla.Env.client, keyword()) :: {:ok, nil} | {:error, Tesla.Env.t}
   def logout_user(connection, _opts \\ []) do
@@ -176,7 +192,9 @@ defmodule OpenapiPetstore.Api.User do
     |> url("/user/logout")
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(false)
+    |> evaluate_response([
+      { :default, false}
+    ])
   end
 
   @doc """
@@ -191,8 +209,8 @@ defmodule OpenapiPetstore.Api.User do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %{}} on success
-  {:error, info} on failure
+  {:ok, nil} on success
+  {:error, Tesla.Env.t} on failure
   """
   @spec update_user(Tesla.Env.client, String.t, OpenapiPetstore.Model.User.t, keyword()) :: {:ok, nil} | {:error, Tesla.Env.t}
   def update_user(connection, username, user, _opts \\ []) do
@@ -202,6 +220,9 @@ defmodule OpenapiPetstore.Api.User do
     |> add_param(:body, :body, user)
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(false)
+    |> evaluate_response([
+      { 400, false},
+      { 404, false}
+    ])
   end
 end

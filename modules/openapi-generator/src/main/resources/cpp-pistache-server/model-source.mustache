@@ -2,10 +2,12 @@
 {{#models}}{{#model}}
 
 #include "{{classname}}.h"
+#include "{{prefix}}Helpers.h"
+{{#isEnum}}#include <stdexcept>{{/isEnum}}
+#include <sstream>
 
-{{#modelNamespaceDeclarations}}
-namespace {{this}} {
-{{/modelNamespaceDeclarations}}
+namespace {{modelNamespace}}
+{
 
 {{classname}}::{{classname}}()
 {
@@ -16,149 +18,128 @@ namespace {{this}} {
     {{/required}}{{/vars}}
 }
 
-{{classname}}::~{{classname}}()
+void {{classname}}::validate() const
 {
-}
-
-void {{classname}}::validate()
-{
-    // TODO: implement validation
-}
-
-nlohmann::json {{classname}}::toJson() const
-{
-    nlohmann::json val = nlohmann::json::object();
-
-    {{#vars}}{{#isPrimitiveType}}{{^isListContainer}}{{^required}}if(m_{{name}}IsSet)
+    std::stringstream msg;
+    if (!validate(msg))
     {
-        val["{{baseName}}"] = m_{{name}};
+        throw {{helpersNamespace}}::ValidationException(msg.str());
     }
-    {{/required}}{{#required}}val["{{baseName}}"] = m_{{name}};
-    {{/required}}{{/isListContainer}}{{/isPrimitiveType}}{{#isListContainer}}{
-        nlohmann::json jsonArray;
-        for( const auto& item : m_{{name}} )
-        {
-            jsonArray.push_back({{prefix}}ModelBase::toJson(item));
-        }
-        {{#required}}val["{{baseName}}"] = jsonArray;
-        {{/required}}{{^required}}
-        if(jsonArray.size() > 0)
-        {
-            val["{{baseName}}"] = jsonArray;
-        } {{/required}}
-    }
-    {{/isListContainer}}{{#isMapContainer}}{
-        nlohmann::json jsonObj;
-        for( const auto& item : m_{{name}} )
-        {   {{^items.isContainer}} 
-            jsonObj[item.first] = {{prefix}}ModelBase::toJson(item.second);{{/items.isContainer}} {{#items.isListContainer}} 
-            jsonObj[item.first] = {{prefix}}ArrayHelper::toJson<{{{items.items.datatype}}}>(item.second);
-            {{/items.isListContainer}} {{#items.isMapContainer}} 
-            jsonObj[item.first] = {{prefix}}MapHelper::toJson<{{{items.items.datatype}}}>(item.second); {{/items.isMapContainer}} 
-        }
-        {{#required}}val["{{baseName}}"] = jsonObj; {{/required}}{{^required}}
-        if(jsonObj.size() > 0)
-        {
-            val["{{baseName}}"] = jsonObj;
-        } {{/required}}
-    }
-    {{/isMapContainer}}{{^isContainer}}{{^isPrimitiveType}}{{^required}}if(m_{{name}}IsSet)
-    {
-        val["{{baseName}}"] = {{prefix}}ModelBase::toJson(m_{{name}});
-    }
-    {{/required}}{{#required}}val["{{baseName}}"] = {{prefix}}ModelBase::toJson(m_{{name}});
-    {{/required}}{{/isPrimitiveType}}{{/isContainer}}{{/vars}}
-
-    return val;
 }
 
-void {{classname}}::fromJson(const nlohmann::json& val)
+bool {{classname}}::validate(std::stringstream& msg) const
 {
-    {{#vars}}{{#isPrimitiveType}}{{^isListContainer}}{{^required}}if(val.find("{{baseName}}") != val.end())
-    {
-        {{setter}}(val.at("{{baseName}}"));
-    }
-    {{/required}}{{#required}}{{setter}}(val.at("{{baseName}}"));
-    {{/required}}{{/isListContainer}}{{/isPrimitiveType}}{{#isListContainer}}{
-        m_{{name}}.clear();
-        {{^required}}if(val.find("{{baseName}}") != val.end())
-        {
-        {{/required}}
-            for( const auto& item : val["{{baseName}}"] )
-            {
-                {{#isPrimitiveType}}m_{{name}}.push_back(item);
-                {{/isPrimitiveType}}{{^isPrimitiveType}}{{#items.isString}}m_{{name}}.push_back(item);
-                {{/items.isString}}{{^items.isString}}{{#items.isDateTime}}m_{{name}}.push_back(item);
-                {{/items.isDateTime}}{{^items.isDateTime}}
-                if(item.is_null())
-                {
-                    m_{{name}}.push_back( {{{items.datatype}}}() );
-                }
-                else
-                {
-                    {{{items.datatype}}} newItem;
-                    newItem.fromJson(item);
-                    m_{{name}}.push_back( newItem );
-                }
-                {{/items.isDateTime}}{{/items.isString}}{{/isPrimitiveType}}
-            }
-        {{^required}}
-        }
-        {{/required}}
-    }
-    {{/isListContainer}}{{#isMapContainer}}{
-        m_{{name}}.clear();
-        {{^required}}if(val.find("{{baseName}}") != val.end())
-        {
-        {{/required}}
-            if(val["{{baseName}}"].is_object()) { {{^items.isContainer}}
-                m_{{name}} = {{prefix}}MapHelper::fromJson<{{{items.datatype}}}>(val["{{baseName}}"]);
-                {{/items.isContainer}} {{#items.isContainer}}
-                for( const auto& item : val["{{baseName}}"].items() )
-                {   {{#items.isMapContainer}}
-                    {{{items.datatype}}} newItem = {{prefix}}MapHelper::fromJson<{{{items.items.datatype}}}>(item.value());
-                    {{/items.isMapContainer}}{{#items.isListContainer}} 
-                    {{{items.datatype}}} newItem = {{prefix}}ArrayHelper::fromJson<{{{items.items.datatype}}}>(item.value());
-                    {{/items.isListContainer}}
-                    m_{{name}}.insert(m_{{name}}.end(), std::pair< std::string, {{{items.datatype}}} >(item.key(), newItem));
-                } {{/items.isContainer}}
-            }
-        {{^required}}
-        }
-        {{/required}}
-    }
-    {{/isMapContainer}}{{^isContainer}}{{^isPrimitiveType}}{{^required}}if(val.find("{{baseName}}") != val.end())
-    {
-        {{#isString}}{{setter}}(val.at("{{baseName}}"));{{/isString}}{{#isByteArray}}{{setter}}(val.at("{{baseName}}"));{{/isByteArray}}{{#isBinary}}{{setter}}(val.at("{{baseName}}"));
-        {{/isBinary}}{{^isString}}{{#isDateTime}}{{setter}}(val.at("{{baseName}}"));
-        {{/isDateTime}}{{^isDateTime}}{{^isByteArray}}{{^isBinary}}if(!val["{{baseName}}"].is_null())
-        {
-            {{{dataType}}} newItem;
-            newItem.fromJson(val["{{baseName}}"]);
-            {{setter}}( newItem );
-        }
-        {{/isBinary}}{{/isByteArray}}{{/isDateTime}}{{/isString}}
-    }
-    {{/required}}{{#required}}{{#isString}}{{setter}}(val.at("{{baseName}}"));
-    {{/isString}}{{^isString}}{{#isDateTime}}{{setter}}(val.at("{{baseName}}"));
-    {{/isDateTime}}{{/isString}}{{/required}}{{/isPrimitiveType}}{{/isContainer}}{{/vars}}
+    return validate(msg, "");
 }
 
-
-{{#vars}}{{#isContainer}}{{{dataType}}}& {{classname}}::{{getter}}()
+bool {{classname}}::validate(std::stringstream& msg, const std::string& pathPrefix) const
 {
-    return m_{{name}};
+    bool success = true;
+    const std::string _pathPrefix = pathPrefix.empty() ? "{{classname}}" : pathPrefix;
+
+    {{#isEnum}}{{! Special case for enum types }}
+    if (m_value == {{classname}}::e{{classname}}::INVALID_VALUE_OPENAPI_GENERATED)
+    {
+        success = false;
+        msg << _pathPrefix << ": has no value;";
+    }
+    {{/isEnum}}
+    {{^isEnum}}
+    {{#vars}}
+    {{#isArray}} {{! Always generate validation body for array types }}
+    {{^required}}if ({{nameInCamelCase}}IsSet()){{/required}}
+    {{#required}}/* {{name}} */ {{/required}}{
+        const {{{dataType}}}& value = m_{{name}};
+        const std::string currentValuePath = _pathPrefix + ".{{nameInCamelCase}}";
+        {{> model-validation-body }}
+    }
+    {{/isArray}}{{^isArray}}{{#hasValidation}} {{! Only generate validation if necessary }}
+    {{^required}}if ({{nameInCamelCase}}IsSet()){{/required}}
+    {{#required}}/* {{name}} */ {{/required}}{
+        const {{{dataType}}}& value = m_{{name}};
+        const std::string currentValuePath = _pathPrefix + ".{{nameInCamelCase}}";
+        {{> model-validation-body }}
+    }
+    {{/hasValidation}}{{/isArray}}{{/vars}}{{/isEnum}}{{#vendorExtensions.x-is-string-enum-container}}{{#anyOf}}{{#-first}}
+    if (!m_value.validate(msg))
+    {
+        success = false;
+    }{{/-first}}{{/anyOf}}{{/vendorExtensions.x-is-string-enum-container}}
+    return success;
 }
-{{/isContainer}}{{^isContainer}}{{{dataType}}} {{classname}}::{{getter}}() const
+
+bool {{classname}}::operator==(const {{classname}}& rhs) const
+{
+    return
+    {{#isEnum}}getValue() == rhs.getValue(){{/isEnum}}
+    {{^isEnum}}{{#hasVars}}{{#vars}}
+    {{#required}}({{getter}}() == rhs.{{getter}}()){{/required}}
+    {{^required}}((!{{nameInCamelCase}}IsSet() && !rhs.{{nameInCamelCase}}IsSet()) || ({{nameInCamelCase}}IsSet() && rhs.{{nameInCamelCase}}IsSet() && {{getter}}() == rhs.{{getter}}())){{/required}}{{^-last}} &&{{/-last}}
+    {{/vars}}{{/hasVars}}{{^hasVars}}{{#vendorExtensions.x-is-string-enum-container}}{{#anyOf}}{{#-first}}getValue() == rhs.getValue(){{/-first}}{{/anyOf}}{{^anyOf}}true{{/anyOf}}{{/vendorExtensions.x-is-string-enum-container}}{{/hasVars}}{{/isEnum}}
+    ;
+}
+
+bool {{classname}}::operator!=(const {{classname}}& rhs) const
+{
+    return !(*this == rhs);
+}
+
+void to_json(nlohmann::json& j, const {{classname}}& o)
+{
+    j = nlohmann::json();
+    {{#vars}}
+    {{#required}}j["{{baseName}}"] = o.m_{{name}};{{/required}}{{^required}}if(o.{{nameInCamelCase}}IsSet(){{#isContainer}} || !o.m_{{name}}.empty(){{/isContainer}})
+        j["{{baseName}}"] = o.m_{{name}};{{/required}}
+    {{/vars}}
+    {{#isEnum}}{{#allowableValues}}
+    switch (o.getValue())
+    {
+        {{#enumVars}}
+        {{#-first}}
+        case {{classname}}::e{{classname}}::INVALID_VALUE_OPENAPI_GENERATED:
+            j = "INVALID_VALUE_OPENAPI_GENERATED";
+            break;
+        {{/-first}}
+        case {{classname}}::e{{classname}}::{{name}}:
+            j = "{{value}}";
+            break;
+        {{/enumVars}}
+    }{{/allowableValues}}{{/isEnum}}{{#vendorExtensions.x-is-string-enum-container}}{{#anyOf}}{{#-first}}to_json(j, o.m_value);{{/-first}}{{/anyOf}}{{/vendorExtensions.x-is-string-enum-container}}
+}
+
+void from_json(const nlohmann::json& j, {{classname}}& o)
+{
+    {{#vars}}
+    {{#required}}j.at("{{baseName}}").get_to(o.m_{{name}});{{/required}}{{^required}}if(j.find("{{baseName}}") != j.end())
+    {
+        j.at("{{baseName}}").get_to(o.m_{{name}});
+        o.m_{{name}}IsSet = true;
+    } {{/required}}
+    {{/vars}}
+    {{#isEnum}}{{#allowableValues}}
+    auto s = j.get<std::string>();
+    {{#enumVars}}
+    {{#-first}}if{{/-first}}{{^-first}}else if{{/-first}} (s == "{{value}}") {
+     o.setValue({{classname}}::e{{classname}}::{{name}});
+    } {{#-last}} else {
+     std::stringstream ss;
+     ss << "Unexpected value " << s << " in json"
+        << " cannot be converted to enum of type"
+        << " {{classname}}::e{{classname}}";
+     throw std::invalid_argument(ss.str());
+    } {{/-last}}
+{{/enumVars}}{{/allowableValues}}{{/isEnum}}{{#vendorExtensions.x-is-string-enum-container}}{{#anyOf}}{{#-first}}from_json(j, o.m_value);{{/-first}}{{/anyOf}}{{/vendorExtensions.x-is-string-enum-container}}
+}
+
+{{#vars}}{{{dataType}}} {{classname}}::{{getter}}() const
 {
     return m_{{name}};
 }
 void {{classname}}::{{setter}}({{{dataType}}} const{{^isPrimitiveType}}&{{/isPrimitiveType}} value)
 {
-    m_{{name}} = value;
-    {{^required}}m_{{name}}IsSet = true;{{/required}}
+    m_{{name}} = value;{{^required}}
+    m_{{name}}IsSet = true;{{/required}}
 }
-{{/isContainer}}
 {{^required}}bool {{classname}}::{{nameInCamelCase}}IsSet() const
 {
     return m_{{name}}IsSet;
@@ -169,10 +150,34 @@ void {{classname}}::unset{{name}}()
 }
 {{/required}}
 {{/vars}}
-
-{{#modelNamespaceDeclarations}}
+{{#isEnum}}{{classname}}::e{{classname}} {{classname}}::getValue() const
+{
+    return m_value;
 }
-{{/modelNamespaceDeclarations}}
+void {{classname}}::setValue({{classname}}::e{{classname}} value)
+{
+    m_value = value;
+}{{/isEnum}}{{#vendorExtensions.x-is-string-enum-container}}{{#anyOf}}{{#-first}}{{{this}}} {{classname}}::getValue() const
+{
+    return m_value;
+}
+
+void {{classname}}::setValue({{{this}}} value)
+{
+    m_value = value;
+}
+
+{{{this}}}::e{{{this}}} {{classname}}::getEnumValue() const
+{
+    return m_value.getValue();
+}
+
+void {{classname}}::setEnumValue({{{this}}}::e{{{this}}}  value)
+{
+    m_value.setValue(value);
+}{{/-first}}{{/anyOf}}{{/vendorExtensions.x-is-string-enum-container}}
+
+} // namespace {{modelNamespace}}
 
 {{/model}}
 {{/models}}

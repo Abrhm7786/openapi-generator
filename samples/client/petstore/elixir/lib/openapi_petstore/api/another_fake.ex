@@ -22,8 +22,8 @@ defmodule OpenapiPetstore.Api.AnotherFake do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %OpenapiPetstore.Model.Client{}} on success
-  {:error, info} on failure
+  {:ok, OpenapiPetstore.Model.Client.t} on success
+  {:error, Tesla.Env.t} on failure
   """
   @spec call_123_test_special_tags(Tesla.Env.client, OpenapiPetstore.Model.Client.t, keyword()) :: {:ok, OpenapiPetstore.Model.Client.t} | {:error, Tesla.Env.t}
   def call_123_test_special_tags(connection, client, _opts \\ []) do
@@ -33,6 +33,8 @@ defmodule OpenapiPetstore.Api.AnotherFake do
     |> add_param(:body, :body, client)
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(%OpenapiPetstore.Model.Client{})
+    |> evaluate_response([
+      { 200, %OpenapiPetstore.Model.Client{}}
+    ])
   end
 end

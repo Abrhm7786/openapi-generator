@@ -3,10 +3,7 @@
 ##
 ## You can build _just_ this part with:
 ##     docker --target builder -t container-name:builder -f .hub.online.dockerfile .
-FROM jimschubert/8-jdk-alpine-mvn:1.0 as builder
-
-RUN set -x && \
-    apk add --no-cache bash
+FROM maven:3.6.3-jdk-11-openj9 as builder
 
 ENV GEN_DIR /opt/openapi-generator
 WORKDIR ${GEN_DIR}
@@ -17,7 +14,7 @@ RUN mvn -am -pl "modules/openapi-generator-online" package
 
 ## The final (release) image
 ## The resulting container here only needs the target jar
-FROM openjdk:8-jre-alpine
+FROM openjdk:11.0.8-jre-slim-buster
 
 ENV GEN_DIR /opt/openapi-generator
 ENV TARGET_DIR /generator
@@ -28,7 +25,7 @@ WORKDIR ${TARGET_DIR}
 
 COPY --from=builder ${GEN_DIR}/modules/openapi-generator-online/target/openapi-generator-online.jar ${TARGET_DIR}/openapi-generator-online.jar
 
-ENV GENERATOR_HOST=http://localhost
+ENV GENERATOR_HOST=""
 
 EXPOSE 8080
 

@@ -6,18 +6,18 @@
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts" : {
-    "build": "tsc --outDir dist/",
+    "build": "node_modules/.bin/tsc --outDir dist/",
     "prepare": "npm run build"
   },
   "dependencies": {
-    "rxjs": "^6.3.3",
+    "rxjs": "^6.3.3"
   },
   "devDependencies": {
-    "typescript": "^2.4"
+    "typescript": "^3.7"
   }{{#npmRepository}},{{/npmRepository}}
 {{#npmRepository}}
-  "publishConfig":{
-    "registry":"{{npmRepository}}"
+  "publishConfig": {
+    "registry": "{{npmRepository}}"
   }
 {{/npmRepository}}
 }

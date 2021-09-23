@@ -2,8 +2,8 @@
 
 ## Requires
 
-* Kotlin 1.1.2
-* Gradle 3.3
+* Kotlin 1.3.61
+* Gradle 4.9
 
 ## Build
 
@@ -37,6 +37,8 @@ Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *AnotherFakeApi* | [**call123testSpecialTags**](docs/AnotherFakeApi.md#call123testspecialtags) | **PATCH** /another-fake/dummy | To test special tags
 *DefaultApi* | [**fooGet**](docs/DefaultApi.md#fooget) | **GET** /foo | 
+*FakeApi* | [**fakeHealthGet**](docs/FakeApi.md#fakehealthget) | **GET** /fake/health | Health check endpoint
+*FakeApi* | [**fakeHttpSignatureTest**](docs/FakeApi.md#fakehttpsignaturetest) | **GET** /fake/http-signature-test | test http signature authentication
 *FakeApi* | [**fakeOuterBooleanSerialize**](docs/FakeApi.md#fakeouterbooleanserialize) | **POST** /fake/outer/boolean | 
 *FakeApi* | [**fakeOuterCompositeSerialize**](docs/FakeApi.md#fakeoutercompositeserialize) | **POST** /fake/outer/composite | 
 *FakeApi* | [**fakeOuterNumberSerialize**](docs/FakeApi.md#fakeouternumberserialize) | **POST** /fake/outer/number | 
@@ -49,6 +51,7 @@ Class | Method | HTTP request | Description
 *FakeApi* | [**testGroupParameters**](docs/FakeApi.md#testgroupparameters) | **DELETE** /fake | Fake endpoint to test group parameters (optional)
 *FakeApi* | [**testInlineAdditionalProperties**](docs/FakeApi.md#testinlineadditionalproperties) | **POST** /fake/inline-additionalProperties | test inline additionalProperties
 *FakeApi* | [**testJsonFormData**](docs/FakeApi.md#testjsonformdata) | **GET** /fake/jsonFormData | test json serialization of form data
+*FakeApi* | [**testQueryParameterCollectionFormat**](docs/FakeApi.md#testqueryparametercollectionformat) | **PUT** /fake/test-query-parameters | 
 *FakeClassnameTags123Api* | [**testClassname**](docs/FakeClassnameTags123Api.md#testclassname) | **PATCH** /fake_classname_test | To test class name in snake case
 *PetApi* | [**addPet**](docs/PetApi.md#addpet) | **POST** /pet | Add a new pet to the store
 *PetApi* | [**deletePet**](docs/PetApi.md#deletepet) | **DELETE** /pet/{petId} | Deletes a pet
@@ -84,10 +87,12 @@ Class | Method | HTTP request | Description
  - [org.openapitools.client.models.ArrayTest](docs/ArrayTest.md)
  - [org.openapitools.client.models.Capitalization](docs/Capitalization.md)
  - [org.openapitools.client.models.Cat](docs/Cat.md)
+ - [org.openapitools.client.models.CatAllOf](docs/CatAllOf.md)
  - [org.openapitools.client.models.Category](docs/Category.md)
  - [org.openapitools.client.models.ClassModel](docs/ClassModel.md)
  - [org.openapitools.client.models.Client](docs/Client.md)
  - [org.openapitools.client.models.Dog](docs/Dog.md)
+ - [org.openapitools.client.models.DogAllOf](docs/DogAllOf.md)
  - [org.openapitools.client.models.EnumArrays](docs/EnumArrays.md)
  - [org.openapitools.client.models.EnumClass](docs/EnumClass.md)
  - [org.openapitools.client.models.EnumTest](docs/EnumTest.md)
@@ -95,22 +100,21 @@ Class | Method | HTTP request | Description
  - [org.openapitools.client.models.Foo](docs/Foo.md)
  - [org.openapitools.client.models.FormatTest](docs/FormatTest.md)
  - [org.openapitools.client.models.HasOnlyReadOnly](docs/HasOnlyReadOnly.md)
- - [org.openapitools.client.models.InlineObject](docs/InlineObject.md)
- - [org.openapitools.client.models.InlineObject1](docs/InlineObject1.md)
- - [org.openapitools.client.models.InlineObject2](docs/InlineObject2.md)
- - [org.openapitools.client.models.InlineObject3](docs/InlineObject3.md)
- - [org.openapitools.client.models.InlineObject4](docs/InlineObject4.md)
- - [org.openapitools.client.models.InlineObject5](docs/InlineObject5.md)
+ - [org.openapitools.client.models.HealthCheckResult](docs/HealthCheckResult.md)
  - [org.openapitools.client.models.InlineResponseDefault](docs/InlineResponseDefault.md)
  - [org.openapitools.client.models.List](docs/List.md)
  - [org.openapitools.client.models.MapTest](docs/MapTest.md)
  - [org.openapitools.client.models.MixedPropertiesAndAdditionalPropertiesClass](docs/MixedPropertiesAndAdditionalPropertiesClass.md)
  - [org.openapitools.client.models.Model200Response](docs/Model200Response.md)
  - [org.openapitools.client.models.Name](docs/Name.md)
+ - [org.openapitools.client.models.NullableClass](docs/NullableClass.md)
  - [org.openapitools.client.models.NumberOnly](docs/NumberOnly.md)
  - [org.openapitools.client.models.Order](docs/Order.md)
  - [org.openapitools.client.models.OuterComposite](docs/OuterComposite.md)
  - [org.openapitools.client.models.OuterEnum](docs/OuterEnum.md)
+ - [org.openapitools.client.models.OuterEnumDefaultValue](docs/OuterEnumDefaultValue.md)
+ - [org.openapitools.client.models.OuterEnumInteger](docs/OuterEnumInteger.md)
+ - [org.openapitools.client.models.OuterEnumIntegerDefaultValue](docs/OuterEnumIntegerDefaultValue.md)
  - [org.openapitools.client.models.Pet](docs/Pet.md)
  - [org.openapitools.client.models.ReadOnlyFirst](docs/ReadOnlyFirst.md)
  - [org.openapitools.client.models.Return](docs/Return.md)
@@ -136,8 +140,18 @@ Class | Method | HTTP request | Description
 - **API key parameter name**: api_key_query
 - **Location**: URL query string
 
+<a name="bearer_test"></a>
+### bearer_test
+
+- **Type**: HTTP basic authentication
+
 <a name="http_basic_test"></a>
 ### http_basic_test
+
+- **Type**: HTTP basic authentication
+
+<a name="http_signature_test"></a>
+### http_signature_test
 
 - **Type**: HTTP basic authentication
 

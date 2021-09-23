@@ -47,10 +47,14 @@ No authorization required
  - **Content-Type**: Not defined
  - **Accept**: Not defined
 
-
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **400** | Invalid ID supplied |  -  |
+| **404** | Order not found |  -  |
 
 # **GetInventory**
-> integer GetInventory()
+> map(integer) GetInventory()
 
 Returns pet inventories by status
 
@@ -74,7 +78,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-**integer**
+**map(integer)**
 
 ### Authorization
 
@@ -85,7 +89,10 @@ This endpoint does not need any parameter.
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | successful operation |  -  |
 
 # **GetOrderById**
 > Order GetOrderById(order.id)
@@ -125,7 +132,12 @@ No authorization required
  - **Content-Type**: Not defined
  - **Accept**: application/xml, application/json
 
-
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | successful operation |  -  |
+| **400** | Invalid ID supplied |  -  |
+| **404** | Order not found |  -  |
 
 # **PlaceOrder**
 > Order PlaceOrder(body)
@@ -136,7 +148,7 @@ Place an order for a pet
 ```R
 library(petstore)
 
-var.body <- Order$new() # Order | order placed for purchasing the pet
+var.body <- Order$new(123, 123, 123, "shipDate_example", "placed", "complete_example") # Order | order placed for purchasing the pet
 
 #Place an order for a pet
 api.instance <- StoreApi$new()
@@ -163,5 +175,9 @@ No authorization required
  - **Content-Type**: Not defined
  - **Accept**: application/xml, application/json
 
-
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | successful operation |  -  |
+| **400** | Invalid Order |  -  |
 

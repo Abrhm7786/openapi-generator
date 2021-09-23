@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@ import com.google.common.collect.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
 import org.openapitools.codegen.*;
+import org.openapitools.codegen.meta.features.*;
 import org.openapitools.codegen.utils.ModelUtils;
 import org.openapitools.codegen.utils.URLPathUtils;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ import static org.openapitools.codegen.CodegenType.SERVER;
 import static org.openapitools.codegen.utils.StringUtils.camelize;
 
 public class CSharpNancyFXServerCodegen extends AbstractCSharpCodegen {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CSharpNancyFXServerCodegen.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(CSharpNancyFXServerCodegen.class);
 
     private static final String API_NAMESPACE = "Modules";
     private static final String MODEL_NAMESPACE = "Models";
@@ -66,6 +67,25 @@ public class CSharpNancyFXServerCodegen extends AbstractCSharpCodegen {
     private boolean asyncServer = false;
 
     public CSharpNancyFXServerCodegen() {
+        super();
+
+        modifyFeatureSet(features -> features
+                .excludeDocumentationFeatures(DocumentationFeature.Readme)
+                .securityFeatures(EnumSet.noneOf(SecurityFeature.class))
+                .excludeGlobalFeatures(
+                        GlobalFeature.XMLStructureDefinitions,
+                        GlobalFeature.Callbacks,
+                        GlobalFeature.LinkObjects,
+                        GlobalFeature.ParameterStyling
+                )
+                .includeSchemaSupportFeatures(
+                        SchemaSupportFeature.Polymorphism
+                )
+                .excludeParameterFeatures(
+                        ParameterFeature.Cookie
+                )
+        );
+
         outputFolder = "generated-code" + File.separator + getName();
         apiTemplateFiles.put("api.mustache", ".cs");
 
@@ -98,8 +118,6 @@ public class CSharpNancyFXServerCodegen extends AbstractCSharpCodegen {
         addSwitch(ASYNC_SERVER, "Set to true to enable the generation of async routes/endpoints.", this.asyncServer);
         typeMapping.putAll(nodaTimeTypesMappings());
         languageSpecificPrimitives.addAll(nodaTimePrimitiveTypes());
-
-        importMapping.clear();
     }
 
     @Override
@@ -124,6 +142,7 @@ public class CSharpNancyFXServerCodegen extends AbstractCSharpCodegen {
         apiPackage = isNullOrEmpty(packageName) ? API_NAMESPACE : packageName + "." + API_NAMESPACE;
         modelPackage = isNullOrEmpty(packageName) ? MODEL_NAMESPACE : packageName + "." + MODEL_NAMESPACE;
 
+        supportingFiles.add(new SupportingFile("gitignore", "", ".gitignore"));
         supportingFiles.add(new SupportingFile("parameters.mustache", sourceFile("Utils"), "Parameters.cs"));
         supportingFiles.add(new SupportingFile("localDateConverter.mustache", sourceFile("Utils"), "LocalDateConverter.cs"));
         supportingFiles.add(new SupportingFile("packages.config.mustache", sourceFolder(), "packages.config"));
@@ -249,7 +268,7 @@ public class CSharpNancyFXServerCodegen extends AbstractCSharpCodegen {
     }
 
     private void postProcessParentModels(final Map<String, Object> models) {
-        LOGGER.debug("Processing parents:  " + parentModels);
+        LOGGER.debug("Processing parents:  {}", parentModels);
         for (final String parent : parentModels) {
             final CodegenModel parentModel = ModelUtils.getModelByName(parent, models);
             if (parentModel != null) {
@@ -275,11 +294,7 @@ public class CSharpNancyFXServerCodegen extends AbstractCSharpCodegen {
                         property.name, child.classname, parent.classname));
                 duplicatedByParent.isInherited = true;
                 final CodegenProperty parentVar = duplicatedByParent.clone();
-                parentVar.hasMore = false;
                 child.parentVars.add(parentVar);
-                if (previousParentVar != null) {
-                    previousParentVar.hasMore = true;
-                }
                 previousParentVar = parentVar;
             }
         }
@@ -359,7 +374,7 @@ public class CSharpNancyFXServerCodegen extends AbstractCSharpCodegen {
 
     @Override
     public void preprocessOpenAPI(final OpenAPI openAPI) {
-        URL url = URLPathUtils.getServerURL(openAPI);
+        URL url = URLPathUtils.getServerURL(openAPI, serverVariableOverrides());
         String path = URLPathUtils.getPath(url, "/");
         final String packageContextOption = (String) additionalProperties.get(PACKAGE_CONTEXT);
         additionalProperties.put("packageContext", packageContextOption == null ? sanitizeName(path) : packageContextOption);
@@ -408,7 +423,7 @@ public class CSharpNancyFXServerCodegen extends AbstractCSharpCodegen {
         return ImmutableSet.of("LocalTime?", "LocalDate?", "ZonedDateTime?");
     }
 
-    private class DependencyInfo {
+    private static class DependencyInfo {
         private final String version;
         private final String framework;
 

@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,28 +19,30 @@ package org.openapitools.codegen;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.AuthorizationValue;
+
+import org.openapitools.codegen.api.TemplateDefinition;
 import org.openapitools.codegen.auth.AuthParser;
 
 import java.util.List;
 
 public class ClientOptInput {
     private CodegenConfig config;
-    private ClientOpts opts;
     private OpenAPI openAPI;
     private List<AuthorizationValue> auths;
+    private List<TemplateDefinition> userDefinedTemplates;
 
     public ClientOptInput openAPI(OpenAPI openAPI) {
         this.setOpenAPI(openAPI);
         return this;
     }
 
-    public ClientOptInput opts(ClientOpts opts) {
-        this.setOpts(opts);
+    public ClientOptInput config(CodegenConfig codegenConfig) {
+        this.setConfig(codegenConfig);
         return this;
     }
 
-    public ClientOptInput config(CodegenConfig codegenConfig) {
-        this.setConfig(codegenConfig);
+    public ClientOptInput userDefinedTemplates(List<TemplateDefinition> userDefinedTemplates) {
+        this.userDefinedTemplates = userDefinedTemplates;
         return this;
     }
 
@@ -65,27 +67,48 @@ public class ClientOptInput {
         return auths;
     }
 
+    @Deprecated
     public CodegenConfig getConfig() {
         return config;
     }
 
+    public List<TemplateDefinition> getUserDefinedTemplates() {
+        // not deprecated as this is added to match other functionality, we need to move to Context<?> instead of ClientOptInput.
+        return userDefinedTemplates;
+    }
+
+    /**
+     * Sets the generator/config instance
+     *
+     * @deprecated use {@link #config(CodegenConfig)} instead
+     * @param config codegen config
+     */
+    @Deprecated
     public void setConfig(CodegenConfig config) {
         this.config = config;
+        // TODO: ClientOptInputs needs to be retired
+        if (this.openAPI != null) {
+            this.config.setOpenAPI(this.openAPI);
+        }
     }
 
-    public ClientOpts getOpts() {
-        return opts;
-    }
-
-    public void setOpts(ClientOpts opts) {
-        this.opts = opts;
-    }
-
+    @Deprecated
     public OpenAPI getOpenAPI() {
         return openAPI;
     }
 
+    /**
+     * Sets the OpenAPI document
+     *
+     * @deprecated use {@link #openAPI(OpenAPI)} instead
+     * @param openAPI the specification
+     */
+    @Deprecated
     public void setOpenAPI(OpenAPI openAPI) {
         this.openAPI = openAPI;
+        // TODO: ClientOptInputs needs to be retired
+        if (this.config != null) {
+            this.config.setOpenAPI(this.openAPI);
+        }
     }
 }

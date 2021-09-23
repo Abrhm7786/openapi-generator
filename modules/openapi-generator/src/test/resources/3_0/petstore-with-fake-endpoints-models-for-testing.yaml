@@ -8,7 +8,7 @@ info:
   title: OpenAPI Petstore
   license:
     name: Apache-2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
   - name: pet
     description: Everything about your Pets
@@ -40,6 +40,8 @@ paths:
       description: ''
       operationId: addPet
       responses:
+        '200':
+          description: Successful operation
         '405':
           description: Invalid input
       security:
@@ -55,6 +57,8 @@ paths:
       description: ''
       operationId: updatePet
       responses:
+        '200':
+          description: Successful operation
         '400':
           description: Invalid ID supplied
         '404':
@@ -81,6 +85,7 @@ paths:
           required: true
           style: form
           explode: false
+          deprecated: true
           schema:
             type: array
             items:
@@ -130,6 +135,7 @@ paths:
             type: array
             items:
               type: string
+            uniqueItems: true
       responses:
         '200':
           description: successful operation
@@ -139,11 +145,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Pet'
+                uniqueItems: true
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Pet'
+                uniqueItems: true
         '400':
           description: Invalid tag value
       security:
@@ -197,6 +205,8 @@ paths:
             type: integer
             format: int64
       responses:
+        '200':
+          description: Successful operation
         '405':
           description: Invalid input
       security:
@@ -235,6 +245,8 @@ paths:
             type: integer
             format: int64
       responses:
+        '200':
+          description: Successful operation
         '400':
           description: Invalid pet value
       security:
@@ -835,6 +847,26 @@ paths:
             schema:
               $ref: '#/components/schemas/OuterNumber'
         description: Input number as post body
+  /fake/property/enum-int:
+    post:
+      tags:
+        - fake
+      description: Test serialization of enum (int) properties with examples
+      operationId: fakePropertyEnumIntegerSerialize
+      responses:
+        '200':
+          description: Output enum (int)
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OuterObjectWithEnumProperty'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OuterObjectWithEnumProperty'
+        description: Input enum (int) as post body
   /fake/outer/string:
     post:
       tags:
@@ -977,7 +1009,7 @@ paths:
       tags:
         - fake
       description: >-
-        For this test, the body for this request much reference a schema named
+        For this test, the body for this request must reference a schema named
         `File`.
       operationId: testBodyWithFileSchema
       responses:
@@ -989,6 +1021,91 @@ paths:
             schema:
               $ref: '#/components/schemas/FileSchemaTestClass'
         required: true
+  /fake/body-with-binary:
+    put:
+      tags:
+        - fake
+      description: >-
+        For this test, the body has to be a binary file.
+      operationId: testBodyWithBinary
+      responses:
+        '200':
+          description: Success
+      requestBody:
+        content:
+          image/png:
+            schema:
+              type: string
+              nullable: true
+              format: binary
+        description: image to upload
+        required: true
+  /fake/test-query-parameters:
+    put:
+      tags:
+        - fake
+      description: To test the collection format in query parameters
+      operationId: testQueryParameterCollectionFormat
+      parameters:
+        - name: pipe
+          in: query
+          required: true
+          style: pipeDelimited
+          schema:
+            type: array
+            items:
+              type: string
+        - name: ioutil
+          in: query
+          required: true
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: http
+          in: query
+          required: true
+          style: spaceDelimited
+          schema:
+            type: array
+            items:
+              type: string
+        - name: url
+          in: query
+          required: true
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: context
+          in: query
+          required: true
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: language
+          in: query
+          required: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+              format: string
+        - name: allowEmpty
+          in: query
+          required: true
+          allowEmptyValue: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
   '/fake/{petId}/uploadImageWithRequiredFile':
     post:
       tags:
@@ -1042,6 +1159,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthCheckResult'
+  /fake/http-signature-test:
+    get:
+      tags:
+        - fake
+      summary: test http signature authentication
+      operationId: fake-http-signature-test
+      parameters:
+        - name: query_1
+          in: query
+          description: query parameter
+          required: optional
+          schema:
+            type: string
+        - name: header_1
+          in: header
+          description: header parameter
+          required: optional
+          schema:
+            type: string
+      security:
+        - http_signature_test: []
+      requestBody:
+        $ref: '#/components/requestBodies/Pet'
+      responses:
+        200:
+          description: The instance started successfully
 servers:
   - url: 'http://{server}.swagger.io:{port}/v2'
     description: petstore server
@@ -1065,6 +1208,8 @@ servers:
           - 'v1'
           - 'v2'
         default: 'v2'
+  - url: https://127.0.0.1/no_varaible
+    description: The local server without variables
 components:
   requestBodies:
     UserArray:
@@ -1117,6 +1262,9 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    http_signature_test:
+      type: http
+      scheme: signature
   schemas:
     Foo:
       type: object
@@ -1223,6 +1371,7 @@ components:
             wrapped: true
           items:
             type: string
+          uniqueItems: true
         tags:
           type: array
           xml:
@@ -1355,6 +1504,9 @@ components:
           format: double
           maximum: 123.4
           minimum: 67.8
+        decimal:
+          type: string
+          format: number
         string:
           type: string
           pattern: '/[a-z]/i'
@@ -1380,7 +1532,7 @@ components:
           maxLength: 64
           minLength: 10
         pattern_with_digits:
-          description: A string that is a 10 digit number. Can have leading zeros. 
+          description: A string that is a 10 digit number. Can have leading zeros.
           type: string
           pattern: '^\d{10}$'
         pattern_with_digits_and_delimiter:
@@ -1530,6 +1682,8 @@ components:
           type: array
           items:
             type: string
+          minItems: 0
+          maxItems: 3
         array_array_of_integer:
           type: array
           items:
@@ -1580,6 +1734,7 @@ components:
               - fish
               - crab
     OuterEnum:
+      nullable: true
       type: string
       enum:
         - placed
@@ -1591,6 +1746,7 @@ components:
       - 0
       - 1
       - 2
+      example: 2
     OuterEnumDefaultValue:
       type: string
       enum:
@@ -1654,3 +1810,91 @@ components:
           nullable: true
           type: string
       description: Just a string to inform instance is up and running. Make it nullable in hope to get it as pointer in generated model.
+    NullableClass:
+      type: object
+      properties:
+        integer_prop:
+          type: integer
+          nullable: true
+        number_prop:
+          type: number
+          nullable: true
+        boolean_prop:
+          type: boolean
+          nullable: true
+        string_prop:
+          type: string
+          nullable: true
+        date_prop:
+          type: string
+          format: date
+          nullable: true
+        datetime_prop:
+          type: string
+          format: date-time
+          nullable: true
+        array_nullable_prop:
+          type: array
+          nullable: true
+          items:
+            type: object
+        array_and_items_nullable_prop:
+          type: array
+          nullable: true
+          items:
+            type: object
+            nullable: true
+        array_items_nullable:
+          type: array
+          items:
+            type: object
+            nullable: true
+        object_nullable_prop:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: object
+        object_and_items_nullable_prop:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: object
+            nullable: true
+        object_items_nullable:
+          type: object
+          additionalProperties:
+            type: object
+            nullable: true
+      additionalProperties:
+        type: object
+        nullable: true
+    OuterObjectWithEnumProperty:
+      type: object
+      example:
+        value: 2
+      required:
+        - value
+      properties:
+        value:
+          $ref: '#/components/schemas/OuterEnumInteger'
+    DeprecatedObject:
+      type: object
+      deprecated: true
+      properties:
+        name:
+          type: string
+    ObjectWithDeprecatedFields:
+      type: object
+      properties:
+        uuid:
+          type: string
+        id:
+          type: number
+          deprecated: true
+        deprecatedRef:
+          $ref: '#/components/schemas/DeprecatedObject'
+        bars:
+          type: array
+          deprecated: true
+          items:
+            $ref: '#/components/schemas/Bar'

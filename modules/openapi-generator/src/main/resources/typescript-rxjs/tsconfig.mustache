@@ -5,12 +5,17 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "dist",
-    "rootDir": "."{{^supportsES6}},
+    "rootDir": ".",
     "lib": [
+      {{^supportsES6}}
       "es6",
-      "dom"
+      {{/supportsES6}}
+      "dom",
+      "es2017"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
     ]
-    {{/supportsES6}}
   },
   "exclude": [
     "dist",

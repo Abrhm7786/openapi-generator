@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.openapitools.codegen.*;
+import org.openapitools.codegen.meta.features.DocumentationFeature;
 import org.openapitools.codegen.utils.URLPathUtils;
 
 import java.io.File;
@@ -52,25 +53,25 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
 
     public JavaPKMSTServerCodegen() {
         super();
-        this.projectFolder = "src" + File.separator + "main";
-        this.projectTestFolder = "src" + File.separator + "test";
-        this.sourceFolder = this.projectFolder + File.separator + "java";
-        this.testFolder = this.projectTestFolder + File.separator + "java";
+
+        modifyFeatureSet(features -> features.includeDocumentationFeatures(DocumentationFeature.Readme));
+
         groupId = "com.prokarma";
         artifactId = "pkmst-microservice";
-        artifactVersion = "1.0.0";
         embeddedTemplateDir = templateDir = "java-pkmst";
         apiPackage = "com.prokarma.pkmst.controller";
         modelPackage = "com.prokarma.pkmst.model";
         invokerPackage = "com.prokarma.pkmst.controller";
-        additionalProperties.put("jackson", "true");
-        serializeBigDecimalAsString = false;
-        withXml = false;
-        javaUtilPrefix = "";
-        serializableModel = false;
-        this.cliOptions.add(new CliOption("groupId", "groupId in generated pom.xml"));
-        this.cliOptions.add(new CliOption("artifactId", "artifactId in generated pom.xml"));
-        this.cliOptions.add(new CliOption("artifactVersion", "artifact version in generated pom.xml"));
+
+        // clioOptions default redefinition need to be updated
+        updateOption(CodegenConstants.GROUP_ID, this.getGroupId());
+        updateOption(CodegenConstants.INVOKER_PACKAGE, this.getInvokerPackage());
+        updateOption(CodegenConstants.ARTIFACT_ID, this.getArtifactId());
+        updateOption(CodegenConstants.API_PACKAGE, apiPackage);
+        updateOption(CodegenConstants.MODEL_PACKAGE, modelPackage);
+
+        additionalProperties.put(JACKSON, "true");
+
         this.cliOptions.add(new CliOption("basePackage", "base package for java source code"));
         this.cliOptions.add(new CliOption("serviceName", "Service Name"));
         this.cliOptions.add(new CliOption(TITLE, "server title name or client service name"));
@@ -79,6 +80,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
         this.cliOptions.add(new CliOption("springBootAdminUri", "Spring-Boot URI"));
         // Middleware config
         this.cliOptions.add(new CliOption("pkmstInterceptor", "PKMST Interceptor"));
+
         this.apiTestTemplateFiles.put("api_test.mustache", ".java");
 
         if (".md".equals(this.modelDocTemplateFiles.get("model_doc.mustache"))) {
@@ -143,7 +145,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
         }
 
         if (this.additionalProperties.containsKey(CodegenConstants.SERIALIZE_BIG_DECIMAL_AS_STRING)) {
-            this.setSerializeBigDecimalAsString(Boolean.valueOf(
+            this.setSerializeBigDecimalAsString(Boolean.parseBoolean(
                     this.additionalProperties.get(CodegenConstants.SERIALIZE_BIG_DECIMAL_AS_STRING).toString()));
         }
         if (this.additionalProperties.containsKey(CodegenConstants.SERIALIZABLE_MODEL)) {
@@ -155,7 +157,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
         }
         this.additionalProperties.put(CodegenConstants.SERIALIZABLE_MODEL, serializableModel);
         if (this.additionalProperties.containsKey(FULL_JAVA_UTIL)) {
-            this.setFullJavaUtil(Boolean.valueOf(this.additionalProperties.get(FULL_JAVA_UTIL).toString()));
+            this.setFullJavaUtil(Boolean.parseBoolean(this.additionalProperties.get(FULL_JAVA_UTIL).toString()));
         }
 
         if (this.additionalProperties.containsKey(EUREKA_URI)) {
@@ -176,7 +178,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
         this.additionalProperties.put("java8", true);
 
         if (this.additionalProperties.containsKey(WITH_XML)) {
-            this.setWithXml(Boolean.valueOf(additionalProperties.get(WITH_XML).toString()));
+            this.setWithXml(Boolean.parseBoolean(additionalProperties.get(WITH_XML).toString()));
         }
         this.additionalProperties.put(WITH_XML, withXml);
 
@@ -355,8 +357,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
     }
 
     /**
-     * This method removes header parameters from the list of parameters and
-     * also corrects last allParams hasMore state.
+     * This method removes header parameters from the list of parameters
      *
      * @param allParams list of all parameters
      */
@@ -372,7 +373,6 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
                 allParams.add(p);
             }
         }
-        allParams.get(allParams.size() - 1).hasMore = false;
     }
 
     /**
@@ -422,7 +422,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
             }
         } else { // enum class
             // Needed imports for Jackson's JsonCreator
-            if (this.additionalProperties.containsKey("jackson")) {
+            if (this.additionalProperties.containsKey(JACKSON)) {
                 model.imports.add("JsonCreator");
             }
         }
@@ -539,7 +539,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
             additionalProperties.put(TITLE, this.title);
         }
 
-        URL url = URLPathUtils.getServerURL(openAPI);
+        URL url = URLPathUtils.getServerURL(openAPI, serverVariableOverrides());
         this.additionalProperties.put("serverPort", URLPathUtils.getPort(url, 8080));
 
         if (openAPI.getPaths() != null) {
@@ -552,11 +552,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
                             for (String tag : operation.getTags()) {
                                 Map<String, String> value = new HashMap<String, String>();
                                 value.put("tag", tag);
-                                value.put("hasMore", "true");
                                 tags.add(value);
-                            }
-                            if (tags.size() > 0) {
-                                tags.get(tags.size() - 1).remove("hasMore");
                             }
                             if (operation.getTags().size() > 0) {
                                 String tag = operation.getTags().get(0);
@@ -611,84 +607,16 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
         return (this.outputFolder + "/" + this.modelDocPath).replace("/", File.separator);
     }
 
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    public String getArtifactId() {
-        return artifactId;
-    }
-
-    public void setArtifactId(String artifactId) {
-        this.artifactId = artifactId;
-    }
-
-    public String getArtifactVersion() {
-        return artifactVersion;
-    }
-
-    public void setArtifactVersion(String artifactVersion) {
-        this.artifactVersion = artifactVersion;
-    }
-
-    public String getProjectFolder() {
-        return projectFolder;
-    }
-
-    public void setProjectFolder(String projectFolder) {
-        this.projectFolder = projectFolder;
-    }
-
-    public String getEurekaUri() {
-        return eurekaUri;
-    }
-
     public void setEurekaUri(String eurekaUri) {
         this.eurekaUri = eurekaUri;
-    }
-
-    public String getZipkinUri() {
-        return zipkinUri;
     }
 
     public void setZipkinUri(String zipkinUri) {
         this.zipkinUri = zipkinUri;
     }
 
-    public String getSpringBootAdminUri() {
-        return springBootAdminUri;
-    }
-
     public void setSpringBootAdminUri(String springBootAdminUri) {
         this.springBootAdminUri = springBootAdminUri;
-    }
-
-    public String getProjectTestFolder() {
-        return projectTestFolder;
-    }
-
-    public void setProjectTestFolder(String projectTestFolder) {
-        this.projectTestFolder = projectTestFolder;
-    }
-
-    public String getSourceFolder() {
-        return sourceFolder;
-    }
-
-    public void setSourceFolder(String sourceFolder) {
-        this.sourceFolder = sourceFolder;
-    }
-
-    public String getTestFolder() {
-        return testFolder;
-    }
-
-    public void setTestFolder(String testFolder) {
-        this.testFolder = testFolder;
     }
 
     public String getBasePackage() {
@@ -715,60 +643,12 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
         this.configPackage = configPackage;
     }
 
-    public boolean isImplicitHeaders() {
-        return implicitHeaders;
-    }
-
-    public void setImplicitHeaders(boolean implicitHeaders) {
-        this.implicitHeaders = implicitHeaders;
-    }
-
-    public boolean isSerializeBigDecimalAsString() {
-        return serializeBigDecimalAsString;
-    }
-
-    public void setSerializeBigDecimalAsString(boolean serializeBigDecimalAsString) {
-        this.serializeBigDecimalAsString = serializeBigDecimalAsString;
-    }
-
-    public boolean isFullJavaUtil() {
-        return fullJavaUtil;
-    }
-
-    public void setFullJavaUtil(boolean fullJavaUtil) {
-        this.fullJavaUtil = fullJavaUtil;
-    }
-
-    public Boolean getSerializableModel() {
-        return serializableModel;
-    }
-
-    public void setSerializableModel(Boolean serializableModel) {
-        this.serializableModel = serializableModel;
-    }
-
-    public String getInvokerPackage() {
-        return invokerPackage;
-    }
-
-    public void setInvokerPackage(String invokerPackage) {
-        this.invokerPackage = invokerPackage;
-    }
-
     public String getTitle() {
         return title;
     }
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public boolean isWithXml() {
-        return withXml;
-    }
-
-    public void setWithXml(boolean withXml) {
-        this.withXml = withXml;
     }
 
     private interface DataTypeAssigner {
@@ -778,7 +658,7 @@ public class JavaPKMSTServerCodegen extends AbstractJavaCodegen {
         void setReturnContainer(String returnContainer);
     }
 
-    private class ResourcePath {
+    private static class ResourcePath {
 
         private String path;
 

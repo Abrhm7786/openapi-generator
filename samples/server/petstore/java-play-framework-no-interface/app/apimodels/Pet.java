@@ -12,22 +12,31 @@ import javax.validation.constraints.*;
 /**
  * A pet for sale in the pet store
  */
-
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaPlayFrameworkCodegen")
 @SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 public class Pet   {
   @JsonProperty("id")
-  private Long id = null;
+  
+  private Long id;
 
   @JsonProperty("category")
-  private Category category = null;
+  @Valid
+
+  private Category category;
 
   @JsonProperty("name")
-  private String name = null;
+  @NotNull
+
+  private String name;
 
   @JsonProperty("photoUrls")
+  @NotNull
+
   private List<String> photoUrls = new ArrayList<>();
 
   @JsonProperty("tags")
+  @Valid
+
   private List<Tag> tags = null;
 
   /**
@@ -53,18 +62,19 @@ public class Pet   {
     }
 
     @JsonCreator
-    public static StatusEnum fromValue(String text) {
+    public static StatusEnum fromValue(String value) {
       for (StatusEnum b : StatusEnum.values()) {
-        if (String.valueOf(b.value).equals(text)) {
+        if (b.value.equals(value)) {
           return b;
         }
       }
-      return null;
+      throw new IllegalArgumentException("Unexpected value '" + value + "'");
     }
   }
 
   @JsonProperty("status")
-  private StatusEnum status = null;
+  
+  private StatusEnum status;
 
   public Pet id(Long id) {
     this.id = id;
@@ -75,7 +85,7 @@ public class Pet   {
    * Get id
    * @return id
   **/
-    public Long getId() {
+  public Long getId() {
     return id;
   }
 
@@ -92,7 +102,6 @@ public class Pet   {
    * Get category
    * @return category
   **/
-  @Valid
   public Category getCategory() {
     return category;
   }
@@ -110,7 +119,6 @@ public class Pet   {
    * Get name
    * @return name
   **/
-  @NotNull
   public String getName() {
     return name;
   }
@@ -133,7 +141,6 @@ public class Pet   {
    * Get photoUrls
    * @return photoUrls
   **/
-  @NotNull
   public List<String> getPhotoUrls() {
     return photoUrls;
   }
@@ -159,7 +166,6 @@ public class Pet   {
    * Get tags
    * @return tags
   **/
-  @Valid
   public List<Tag> getTags() {
     return tags;
   }
@@ -177,7 +183,7 @@ public class Pet   {
    * pet status in the store
    * @return status
   **/
-    public StatusEnum getStatus() {
+  public StatusEnum getStatus() {
     return status;
   }
 
@@ -187,7 +193,7 @@ public class Pet   {
 
 
   @Override
-  public boolean equals(java.lang.Object o) {
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
@@ -228,7 +234,7 @@ public class Pet   {
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).
    */
-  private String toIndentedString(java.lang.Object o) {
+  private String toIndentedString(Object o) {
     if (o == null) {
       return "null";
     }

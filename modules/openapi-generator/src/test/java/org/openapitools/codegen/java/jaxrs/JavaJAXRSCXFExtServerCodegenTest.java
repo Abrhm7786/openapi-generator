@@ -1,220 +1,36 @@
 package org.openapitools.codegen.java.jaxrs;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import org.openapitools.codegen.ClientOptInput;
-import org.openapitools.codegen.ClientOpts;
-import org.openapitools.codegen.CodegenConstants;
-import org.openapitools.codegen.CodegenOperation;
-import org.openapitools.codegen.MockDefaultGenerator;
-import org.openapitools.codegen.MockDefaultGenerator.WrittenTemplateBasedFile;
-import org.openapitools.codegen.TestUtils;
-import org.openapitools.codegen.languages.AbstractJavaCodegen;
-import org.openapitools.codegen.languages.AbstractJavaJAXRSServerCodegen;
-import org.openapitools.codegen.languages.JavaCXFExtServerCodegen;
-import org.openapitools.codegen.languages.features.BeanValidationExtendedFeatures;
-import org.openapitools.codegen.languages.features.BeanValidationFeatures;
-import org.openapitools.codegen.languages.features.CXFExtServerFeatures;
-import org.openapitools.codegen.languages.features.CXFServerFeatures;
-import org.openapitools.codegen.languages.features.GzipFeatures;
-import org.openapitools.codegen.languages.features.GzipTestFeatures;
-import org.openapitools.codegen.languages.features.JbossFeature;
-import org.openapitools.codegen.languages.features.LoggingFeatures;
-import org.openapitools.codegen.languages.features.LoggingTestFeatures;
-import org.openapitools.codegen.languages.features.SpringFeatures;
-import org.openapitools.codegen.languages.features.SwaggerFeatures;
-import org.openapitools.codegen.languages.features.SwaggerUIFeatures;
-import org.openapitools.codegen.languages.features.UseGenericResponseFeatures;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.core.models.ParseOptions;
+import org.openapitools.codegen.*;
+import org.openapitools.codegen.languages.AbstractJavaCodegen;
+import org.openapitools.codegen.languages.AbstractJavaJAXRSServerCodegen;
+import org.openapitools.codegen.languages.JavaCXFExtServerCodegen;
+import org.openapitools.codegen.languages.features.*;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
-public class JavaJAXRSCXFExtServerCodegenTest {
-    @SuppressWarnings("unused")
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import static org.testng.Assert.*;
+
+public class JavaJAXRSCXFExtServerCodegenTest extends JavaJaxrsBaseTest {
     private static class JavaCXFExtServerCodegenTester extends JavaCXFExtServerCodegen {
-        /* Options processed by DefaultCodegen */
-
-        // CodegenConstants.ALLOW_UNICODE_IDENTIFIERS
-        public Boolean getAllowUnicodeIdentifiers() {
-            return allowUnicodeIdentifiers;
-        }
-
-        // CodegenConstants.API_PACKAGE
-        public String getApiPackage() {
-            return apiPackage;
-        }
-
-        // CodegenConstants.DOCEXTENSION
-//        String getDocExtension();
-
-        // CodegenConstants.ARTIFACT_DESCRIPTION
-        public String getArtifactDescription() {
-            return artifactDescription;
-        }
-
-        // CodegenConstants.ARTIFACT_ID
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        // CodegenConstants.ARTIFACT_URL
-        public String getArtifactUrl() {
-            return artifactUrl;
-        }
-
-        // CodegenConstants.ARTIFACT_VERSION
-        public String getArtifactVersion() {
-            return artifactVersion;
-        }
-
-        // AbstractJavaCodegen.BOOLEAN_GETTER_PREFIX
-        public String getBooleanGetterPrefix() {
-            return booleanGetterPrefix;
-        }
-
-        // AbstractJavaCodegen.DATE_LIBRARY
-        public String getDateLibrary() {
-            return dateLibrary;
-        }
-
-        // CodegenConstants.DEVELOPER_EMAIL
-        public String getDeveloperEmail() {
-            return developerEmail;
-        }
-
-        // CodegenConstants.DEVELOPER_NAME
-        public String getDeveloperName() {
-            return developerName;
-        }
-
-        // CodegenConstants.DEVELOPER_ORGANIZATION
-        public String getDeveloperOrganization() {
-            return developerOrganization;
-        }
-
-        // CodegenConstants.DEVELOPER_ORGANIZATION_URL
-        public String getDeveloperOrganizationUrl() {
-            return developerOrganizationUrl;
-        }
-
-        /* Options processed by AbstractJavaCodegen */
-
-        // CodegenConstants.ENSURE_UNIQUE_PARAMS
-        public Boolean getEnsureUniqueParams() {
-            return ensureUniqueParams;
-        }
-
-        // CodegenConstants.GROUP_ID
-        public String getGroupId() {
-            return groupId;
-        }
-
-        // CodegenConstants.HIDE_GENERATION_TIMESTAMP
-        public Boolean getHideGenerationTimestamp() {
-            return hideGenerationTimestamp;
-        }
 
         // CodegenConstants.IMPL_FOLDER
         public String getImplFolder() {
             return implFolder;
         }
-
-        // CodegenConstants.INVOKER_PACKAGE
-        public String getInvokerPackage() {
-            return invokerPackage;
-        }
-
-        // CodegenConstants.LICENSE_NAME
-        public String getLicenseName() {
-            return licenseName;
-        }
-
-        // CodegenConstants.LICENSE_URL
-        public String getLicenseUrl() {
-            return licenseUrl;
-        }
-
-        // CodegenConstants.LOCAL_VARIABLE_PREFIX
-        public String getLocalVariablePrefix() {
-            return localVariablePrefix;
-        }
-
-        // CodegenConstants.MODEL_NAME_PREFIX
-        public String getModelNamePrefix() {
-            return modelNamePrefix;
-        }
-
-        // CodegenConstants.MODEL_NAME_SUFFIX
-        public String getModelNameSuffix() {
-            return modelNameSuffix;
-        }
-
-        // CodegenConstants.MODEL_PACKAGE
-        public String getModelPackage() {
-            return modelPackage;
-        }
-
-        // CodegenConstants.PREPEND_FORM_OR_BODY_PARAMETERS
-        public Boolean getPrependFormOrBodyParameters() {
-            return prependFormOrBodyParameters;
-        }
-
-        // CodegenConstants.REMOVE_OPERATION_ID_PREFIX
-        boolean getRemoveOperationIdPrefix() {
-            return removeOperationIdPrefix;
-        }
-
-        // CodegenConstants.SCM_CONNECTION
-        public String getScmConnection() {
-            return scmConnection;
-        }
-
-        // CodegenConstants.SCM_DEVELOPER_CONNECTION
-        public String getScmDeveloperConnection() {
-            return scmDeveloperConnection;
-        }
-
-        // CodegenConstants.SCM_URL
-        public String getScmUrl() {
-            return scmUrl;
-        }
-
-        // CodegenConstants.SERIALIZABLE_MODEL
-        public Boolean getSerializableModel() {
-            return serializableModel;
-        }
-
-        // CodegenConstants.SORT_PARAMS_BY_REQUIRED_FLAG
-        public Boolean getSortParamsByRequiredFlag() {
-            return sortParamsByRequiredFlag;
-        }
-
-        // CodegenConstants.SOURCE_FOLDER
-        public String getSourceFolder() {
-            return sourceFolder;
-        }
-
-        // AbstractJavaCodegen.BOOLEAN_GETTER_PREFIX_DEFAULT (UNUSED)
-
-        // CodegenConstants.TEMPLATE_DIR
-        public String getTemplateDir() {
-            return templateDir;
-        }
-
-        // AbstractJavaCodegen.DEFAULT_LIBRARY (UNUSED)
 
         // CXFServerFeatures.TEST_DATA_CONTROL_FILE
         public File getTestDataControlFile() {
@@ -253,8 +69,6 @@ public class JavaJAXRSCXFExtServerCodegenTest {
             return generateSpringApplication;
         }
 
-        // AbstractJavaJAXRSServerCodegen.SERVER_PORT (no corresponding field)
-
         /* Options processed by JavaCXFServerCodegen */
 
         // SpringFeatures.GENERATE_SPRING_BOOT_APPLICATION
@@ -275,11 +89,6 @@ public class JavaJAXRSCXFExtServerCodegenTest {
         // AbstractJavaCodegen.SUPPORT_ASYNC
         public boolean isSupportAsync() {
             return supportAsync;
-        }
-
-        // AbstractJavaCodegen.SUPPORT_JAVA6
-        public boolean isSupportJava6() {
-            return supportJava6;
         }
 
         // CXFServerFeatures.USE_ANNOTATED_BASE_PATH
@@ -325,11 +134,6 @@ public class JavaJAXRSCXFExtServerCodegenTest {
         // CXFServerFeatures.USE_MULTIPART_FEATURE
         public boolean isUseMultipartFeature() {
             return useMultipartFeature;
-        }
-
-        // AbstractJavaCodegen.USE_NULL_FOR_UNKNOWN_ENUM_VALUE
-        public boolean isUseNullForUnknownEnumValue() {
-            return useNullForUnknownEnumValue;
         }
 
         // SpringFeatures.USE_SPRING_ANNOTATION_CONFIG
@@ -380,21 +184,28 @@ public class JavaJAXRSCXFExtServerCodegenTest {
         }
     }
 
-    private JavaCXFExtServerCodegenTester codegen;
-
     @BeforeMethod
     public void beforeMethod() {
         codegen = new JavaCXFExtServerCodegenTester();
     }
 
-    private void checkFile(MockDefaultGenerator generator, String path, boolean fileShouldExist, String... regexes) {
-        String file = generator.getFiles().get(path);
-        if (fileShouldExist)
-            assertNotNull(file);
-        else
-            assertNull(file);
+    private void checkFile(Path path, boolean fileShouldExist, String... regexes) {
+        if (!fileShouldExist) {
+            assertFalse(path.toFile().exists());
+            return;
+        }
+
+        assertTrue(path.toFile().exists());
+
+        String contents = null;
+        try {
+            contents = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            fail("Unable to evaluate file contents");
+        }
+
         for (String regex : regexes)
-            assertTrue(Pattern.compile(regex).matcher(file).find());
+            assertTrue(Pattern.compile(regex).matcher(contents).find());
     }
 
     @SuppressWarnings("unchecked")
@@ -407,7 +218,8 @@ public class JavaJAXRSCXFExtServerCodegenTest {
 
     @Test
     public void testAdditionalPropertiesPutForConfigValues() throws Exception {
-        Map<String, Object> additionalProperties = codegen.additionalProperties();
+        JavaCXFExtServerCodegenTester testerCodegen = (JavaCXFExtServerCodegenTester) this.codegen;
+        Map<String, Object> additionalProperties = testerCodegen.additionalProperties();
 
         // Options processed by DefaultCodegen
         additionalProperties.put(CodegenConstants.ALLOW_UNICODE_IDENTIFIERS, "true");
@@ -448,8 +260,8 @@ public class JavaJAXRSCXFExtServerCodegenTest {
         additionalProperties.put(AbstractJavaCodegen.JAVA8_MODE, "true");
         additionalProperties.put(AbstractJavaCodegen.SUPPORT_ASYNC, "true");
         additionalProperties.put(AbstractJavaCodegen.SUPPORT_JAVA6, "false");
-        additionalProperties.put(AbstractJavaCodegen.USE_NULL_FOR_UNKNOWN_ENUM_VALUE, "true");
         additionalProperties.put(AbstractJavaCodegen.WITH_XML, "true");
+        additionalProperties.put(AbstractJavaCodegen.OPENAPI_NULLABLE, "false");
         // Options processed by AbstractJavaJAXRSServerCodegen
         additionalProperties.put(CodegenConstants.IMPL_FOLDER, "myimpl");
         additionalProperties.put(BeanValidationFeatures.USE_BEANVALIDATION, "true");
@@ -479,180 +291,99 @@ public class JavaJAXRSCXFExtServerCodegenTest {
         additionalProperties.put(CXFExtServerFeatures.TEST_DATA_FILE, "my/test-data.json");
         additionalProperties.put(CXFExtServerFeatures.TEST_DATA_CONTROL_FILE, "my/test-data-control.json");
 
-        codegen.processOpts();
+        testerCodegen.processOpts();
 
         OpenAPI openAPI = new OpenAPI();
         openAPI.addServersItem(new Server().url("https://api.abcde.xy:8082/v2"));
-        codegen.preprocessOpenAPI(openAPI);
+        testerCodegen.preprocessOpenAPI(openAPI);
 
         // Options processed by DefaultCodegen
-        assertEquals(codegen.getAllowUnicodeIdentifiers(), Boolean.TRUE);
-        assertEquals(codegen.apiPackage(), "xyz.yyyyy.aaaaa.api");
-        assertEquals(codegen.getDocExtension(), "doc");
-        assertEquals(codegen.getEnsureUniqueParams(), Boolean.TRUE);
-        assertEquals(codegen.isHideGenerationTimestamp(), true);
-        assertEquals(codegen.getInvokerPackage(), "xyz.yyyyy.iiii.invoker");
-        assertEquals(codegen.getModelNamePrefix(), "MyPrefix");
-        assertEquals(codegen.getModelNameSuffix(), "MySuffix");
-        assertEquals(codegen.getModelPackage(), "xyz.yyyyy.mmmmm.model");
-        assertEquals(codegen.getPrependFormOrBodyParameters(), Boolean.TRUE);
-        assertEquals(codegen.getRemoveOperationIdPrefix(), true);
-        assertEquals(codegen.getSortParamsByRequiredFlag(), Boolean.TRUE);
-        assertEquals(codegen.getTemplateDir(), "MyTemplates");
-        assertEquals(codegen.getArtifactDescription(), "My description");
+        assertEquals(testerCodegen.getAllowUnicodeIdentifiers(), Boolean.TRUE);
+        assertEquals(testerCodegen.apiPackage(), "xyz.yyyyy.aaaaa.api");
+        assertEquals(testerCodegen.getDocExtension(), "doc");
+        assertEquals(testerCodegen.getEnsureUniqueParams(), Boolean.TRUE);
+        assertEquals(testerCodegen.isHideGenerationTimestamp(), true);
+        assertEquals(testerCodegen.getInvokerPackage(), "xyz.yyyyy.iiii.invoker");
+        assertEquals(testerCodegen.getModelNamePrefix(), "MyPrefix");
+        assertEquals(testerCodegen.getModelNameSuffix(), "MySuffix");
+        assertEquals(testerCodegen.modelPackage(), "xyz.yyyyy.mmmmm.model");
+        assertEquals(testerCodegen.getPrependFormOrBodyParameters(), Boolean.TRUE);
+        assertEquals(testerCodegen.isRemoveOperationIdPrefix(), true);
+        assertEquals(testerCodegen.getSortParamsByRequiredFlag(), Boolean.TRUE);
+        assertEquals(testerCodegen.templateDir(), "MyTemplates");
+        assertEquals(testerCodegen.getArtifactDescription(), "My description");
         // Options processed by AbstractJavaCodegen
-        assertEquals(codegen.getArtifactId(), "my-artifact");
-        assertEquals(codegen.getArtifactVersion(), "9.9.9");
-        assertEquals(codegen.getArtifactUrl(), "http://organisation.org/group/artifact");
-        assertEquals(codegen.getDeveloperEmail(), "dchappie@organisation.org");
-        assertEquals(codegen.getDeveloperName(), "Developer Chappie");
-        assertEquals(codegen.getDeveloperOrganization(), "My Organisation");
-        assertEquals(codegen.getDeveloperOrganizationUrl(), "http://www.organisation.org/");
-        assertEquals(codegen.getGroupId(), "org.organisation.group.id");
-        assertEquals(codegen.getLicenseName(), "Apache 2.0");
-        assertEquals(codegen.getLicenseUrl(), "https://www.apache.org/licenses/LICENSE-2.0");
-        assertEquals(codegen.getScmConnection(), "http://svn.organisation.org/group/");
-        assertEquals(codegen.getScmDeveloperConnection(), "http://svn.organisation.org/dev/group/");
-        assertEquals(codegen.getScmUrl(), "http://svn.organisation.org/group/");
-        assertEquals(codegen.isSerializeBigDecimalAsString(), true);
-        assertEquals(codegen.getSerializableModel(), Boolean.TRUE);
-        assertEquals(codegen.getSourceFolder(), "src/main/java");
-        assertEquals(codegen.getBooleanGetterPrefix(), "isIt");
-        assertEquals(codegen.getDateLibrary(), "MyDateLibrary");
-        assertEquals(codegen.isDisableHtmlEscaping(), true);
-        assertEquals(codegen.isFullJavaUtil(), true);
-        assertEquals(codegen.isJava8Mode(), true);
-        assertEquals(codegen.isSupportAsync(), true);
-        assertEquals(codegen.isUseNullForUnknownEnumValue(), true);
-        assertEquals(codegen.isWithXml(), true);
+        assertEquals(testerCodegen.getArtifactId(), "my-artifact");
+        assertEquals(testerCodegen.getArtifactVersion(), "9.9.9");
+        assertEquals(testerCodegen.getArtifactUrl(), "http://organisation.org/group/artifact");
+        assertEquals(testerCodegen.getDeveloperEmail(), "dchappie@organisation.org");
+        assertEquals(testerCodegen.getDeveloperName(), "Developer Chappie");
+        assertEquals(testerCodegen.getDeveloperOrganization(), "My Organisation");
+        assertEquals(testerCodegen.getDeveloperOrganizationUrl(), "http://www.organisation.org/");
+        assertEquals(testerCodegen.getGroupId(), "org.organisation.group.id");
+        assertEquals(testerCodegen.getLicenseName(), "Apache 2.0");
+        assertEquals(testerCodegen.getLicenseUrl(), "https://www.apache.org/licenses/LICENSE-2.0");
+        assertEquals(testerCodegen.getScmConnection(), "http://svn.organisation.org/group/");
+        assertEquals(testerCodegen.getScmDeveloperConnection(), "http://svn.organisation.org/dev/group/");
+        assertEquals(testerCodegen.getScmUrl(), "http://svn.organisation.org/group/");
+        assertEquals(testerCodegen.isSerializeBigDecimalAsString(), true);
+        assertEquals(testerCodegen.getSerializableModel(), Boolean.TRUE);
+        assertEquals(testerCodegen.getSourceFolder(), "src/main/java");
+        assertEquals(testerCodegen.getBooleanGetterPrefix(), "isIt");
+        assertEquals(testerCodegen.getDateLibrary(), "MyDateLibrary");
+        assertEquals(testerCodegen.isDisableHtmlEscaping(), true);
+        assertEquals(testerCodegen.isFullJavaUtil(), true);
+        assertEquals(testerCodegen.isJava8Mode(), true);
+        assertEquals(testerCodegen.isSupportAsync(), true);
+        assertEquals(testerCodegen.isWithXml(), true);
+        assertEquals(testerCodegen.isOpenApiNullable(), false);
         // Options processed by AbstractJavaJAXRSServerCodegen
-        assertEquals(codegen.getImplFolder(), "myimpl");
-        assertEquals(codegen.isUseBeanValidation(), true);
-//        assertEquals(codegen.getServerPort(), 8088);
+        assertEquals(testerCodegen.getImplFolder(), "myimpl");
+        assertEquals(testerCodegen.isUseBeanValidation(), true);
         // Options processed by JavaCXFServerCodegen
         File curdir = new File(System.getProperty("user.dir"));
-        assertEquals(codegen.isUseBeanValidationFeature(), true);
-        assertEquals(codegen.isUseGzipFeature(), true);
-        assertEquals(codegen.isUseGzipFeatureForTests(), true);
-        assertEquals(codegen.isGenerateJbossDeploymentDescriptor(), true);
-        assertEquals(codegen.isUseLoggingFeature(), true);
-        assertEquals(codegen.isUseLoggingFeatureForTests(), true);
-        assertEquals(codegen.isGenerateSpringApplication(), true);
-        assertEquals(codegen.isGenerateSpringBootApplication(), true);
-        assertEquals(codegen.isUseSpringAnnotationConfig(), true);
-        assertEquals(codegen.isUseSwaggerFeature(), true);
-        assertEquals(codegen.isUseSwaggerUI(), true);
-        assertEquals(codegen.isUseGenericResponse(), true);
-        assertEquals(codegen.isAddConsumesProducesJson(), true);
-        assertEquals(codegen.isGenerateNonSpringApplication(), false);
-        assertEquals(codegen.isUseAnnotatedBasePath(), true);
-        assertEquals(codegen.isUseMultipartFeature(), true);
-        assertEquals(codegen.isUseWadlFeature(), true);
+        assertEquals(testerCodegen.isUseBeanValidationFeature(), true);
+        assertEquals(testerCodegen.isUseGzipFeature(), true);
+        assertEquals(testerCodegen.isUseGzipFeatureForTests(), true);
+        assertEquals(testerCodegen.isGenerateJbossDeploymentDescriptor(), true);
+        assertEquals(testerCodegen.isUseLoggingFeature(), true);
+        assertEquals(testerCodegen.isUseLoggingFeatureForTests(), true);
+        assertEquals(testerCodegen.isGenerateSpringApplication(), true);
+        assertEquals(testerCodegen.isGenerateSpringBootApplication(), true);
+        assertEquals(testerCodegen.isUseSpringAnnotationConfig(), true);
+        assertEquals(testerCodegen.isUseSwaggerFeature(), true);
+        assertEquals(testerCodegen.isUseSwaggerUI(), true);
+        assertEquals(testerCodegen.isUseGenericResponse(), true);
+        assertEquals(testerCodegen.isAddConsumesProducesJson(), true);
+        assertEquals(testerCodegen.isGenerateNonSpringApplication(), false);
+        assertEquals(testerCodegen.isUseAnnotatedBasePath(), true);
+        assertEquals(testerCodegen.isUseMultipartFeature(), true);
+        assertEquals(testerCodegen.isUseWadlFeature(), true);
         // Options processed by JavaCXFExtServerCodegen
-        assertEquals(codegen.isGenerateOperationBody(), true);
-        assertEquals(codegen.isLoadTestDataFromFile(), true);
-        assertEquals(codegen.isSupportMultipleSpringServices(), true);
-        assertEquals(codegen.getTestDataFile(), new File(curdir, "my/test-data.json"));
-        assertEquals(codegen.getTestDataControlFile(), new File(curdir, "my/test-data-control.json"));
-    }
-
-    @Test
-    public void testAddOperationToGroup() throws Exception {
-        File output = Files.createTempDirectory("test").toFile();
-        output.deleteOnExit();
-
-        OpenAPI openAPI = new OpenAPIParser().readLocation("src/test/resources/3_0/tags.yaml", null, new ParseOptions())
-                .getOpenAPI();
-        codegen.setOutputDir(output.getAbsolutePath());
-
-        ClientOpts opts = new ClientOpts();
-        ClientOptInput input = new ClientOptInput();
-        input.setOpenAPI(openAPI);
-        input.setConfig(codegen);
-        input.setOpts(opts);
-
-        MockDefaultGenerator generator = new MockDefaultGenerator();
-        generator.opts(input).generate();
-
-        WrittenTemplateBasedFile tag1File = TestUtils.getTemplateBasedFile(generator, output,
-                "src/gen/java/org/openapitools/api/Tag1Api.java");
-        assertEquals(tag1File.getTemplateData().get("baseName"), "Tag1");
-        assertEquals(tag1File.getTemplateData().get("commonPath"), "Tag1");
-        List<CodegenOperation> tag1List = getOperationsList(tag1File.getTemplateData());
-        assertEquals(tag1List.size(), 1);
-        assertEquals(tag1List.get(0).path, "/group1/op1");
-        assertEquals(tag1List.get(0).baseName, "Tag1");
-        assertEquals(tag1List.get(0).subresourceOperation, true);
-
-        WrittenTemplateBasedFile tag2File = TestUtils.getTemplateBasedFile(generator, output,
-                "src/gen/java/org/openapitools/api/Tag2Api.java");
-        assertEquals(tag2File.getTemplateData().get("baseName"), "Tag2");
-        assertEquals(tag2File.getTemplateData().get("commonPath"), "Tag2");
-        List<CodegenOperation> tag2List = getOperationsList(tag2File.getTemplateData());
-        assertEquals(tag2List.size(), 2);
-        assertEquals(tag2List.get(0).path, "/group1/op2");
-        assertEquals(tag2List.get(0).baseName, "Tag2");
-        assertEquals(tag2List.get(0).subresourceOperation, true);
-        assertEquals(tag2List.get(1).path, "/group2/op3");
-        assertEquals(tag2List.get(1).baseName, "Tag2");
-        assertEquals(tag2List.get(1).subresourceOperation, true);
-
-        WrittenTemplateBasedFile defaultFile = TestUtils.getTemplateBasedFile(generator, output,
-                "src/gen/java/org/openapitools/api/DefaultApi.java");
-        assertEquals(defaultFile.getTemplateData().get("baseName"), "Default");
-        assertEquals(defaultFile.getTemplateData().get("commonPath"), "Default");
-        List<CodegenOperation> defaultList = getOperationsList(defaultFile.getTemplateData());
-        assertEquals(defaultList.size(), 1);
-        assertEquals(defaultList.get(0).path, "/group3/op4");
-        assertEquals(defaultList.get(0).baseName, "Default");
-        assertEquals(defaultList.get(0).subresourceOperation, true);
-
-        WrittenTemplateBasedFile group4File = TestUtils.getTemplateBasedFile(generator, output,
-                "src/gen/java/org/openapitools/api/Group4Api.java");
-        assertEquals(group4File.getTemplateData().get("baseName"), "Group4");
-        assertEquals(group4File.getTemplateData().get("commonPath"), "Group4");
-        List<CodegenOperation> group4List = getOperationsList(group4File.getTemplateData());
-        assertEquals(group4List.size(), 2);
-        assertEquals(group4List.get(0).path, "/group4/op5");
-        assertEquals(group4List.get(0).baseName, "Group4");
-        assertEquals(group4List.get(0).subresourceOperation, true);
-        assertEquals(group4List.get(1).path, "/group4/op6");
-        assertEquals(group4List.get(1).baseName, "Group4");
-        assertEquals(group4List.get(1).subresourceOperation, true);
-
-        WrittenTemplateBasedFile group5File = TestUtils.getTemplateBasedFile(generator, output,
-                "src/gen/java/org/openapitools/api/Group5Api.java");
-        assertEquals(group5File.getTemplateData().get("baseName"), "Group5");
-        assertEquals(group5File.getTemplateData().get("commonPath"), "Group5");
-        List<CodegenOperation> group5List = getOperationsList(group5File.getTemplateData());
-        assertEquals(group5List.size(), 2);
-        assertEquals(group5List.get(0).path, "/group5/op7");
-        assertEquals(group5List.get(0).baseName, "Group5");
-        assertEquals(group5List.get(0).subresourceOperation, true);
-        assertEquals(group5List.get(1).path, "/group6/op8");
-        assertEquals(group5List.get(1).baseName, "Group5");
-        assertEquals(group5List.get(1).subresourceOperation, true);
+        assertEquals(testerCodegen.isGenerateOperationBody(), true);
+        assertEquals(testerCodegen.isLoadTestDataFromFile(), true);
+        assertEquals(testerCodegen.isSupportMultipleSpringServices(), true);
+        assertEquals(testerCodegen.getTestDataFile(), new File(curdir, "my/test-data.json"));
+        assertEquals(testerCodegen.getTestDataControlFile(), new File(curdir, "my/test-data-control.json"));
     }
 
     @Test
     public void testGenerateOperationBodyWithCodedTestData() throws Exception {
-        File output = Files.createTempDirectory("test").toFile();
+        File output = Files.createTempDirectory("test").toFile().getCanonicalFile();
         output.deleteOnExit();
-        String outputPath = output.getCanonicalPath().replace('\\', '/');
+        String outputPath = output.getAbsolutePath().replace('\\', '/');
 
         OpenAPI openAPI = new OpenAPIParser()
                 .readLocation("src/test/resources/3_0/petstore.yaml", null, new ParseOptions()).getOpenAPI();
         codegen.setOutputDir(output.getAbsolutePath());
 
-        ClientOpts opts = new ClientOpts();
-        opts.getProperties().put(CXFExtServerFeatures.GENERATE_OPERATION_BODY, "true");
+        codegen.additionalProperties().put(CXFExtServerFeatures.GENERATE_OPERATION_BODY, "true");
 
         ClientOptInput input = new ClientOptInput();
-        input.setOpenAPI(openAPI);
-        input.setConfig(codegen);
-        input.setOpts(opts);
+        input.openAPI(openAPI);
+        input.config(codegen);
 
-        MockDefaultGenerator generator = new MockDefaultGenerator();
+        DefaultGenerator generator = new DefaultGenerator();
         generator.opts(input).generate();
 
         String reGetPetById = "(?s)(?m)public Pet getPetById\\(Long petId\\) \\{" // split
@@ -661,7 +392,7 @@ public class JavaJAXRSCXFExtServerCodegenTest {
                 + ".*" // split
                 + "return response;\\s+" // split
                 + "\\}"; // split
-        checkFile(generator, outputPath + "/src/main/java/org/openapitools/api/impl/PetApiServiceImpl.java", true,
+        checkFile(Paths.get(outputPath + "/src/main/java/org/openapitools/api/impl/PetApiServiceImpl.java"), true,
                 reGetPetById);
 
         String reFindPetsByStatusTest = "(?s)(?m)public void findPetsByStatusTest\\(\\) throws Exception \\{\\s+"
@@ -672,34 +403,32 @@ public class JavaJAXRSCXFExtServerCodegenTest {
                 + ".*" // split
                 + "validate\\(response\\);\\s+" // split
                 + "\\}";
-        checkFile(generator, outputPath + "/src/test/java/org/openapitools/api/PetApiTest.java", true,
+        checkFile(Paths.get(outputPath + "/src/test/java/org/openapitools/api/PetApiTest.java"), true,
                 reFindPetsByStatusTest);
 
-        checkFile(generator, outputPath + "/src/main/resources/test-data.json", false);
+        checkFile(Paths.get(outputPath + "/src/main/resources/test-data.json"), false);
 
-        checkFile(generator, outputPath + "/test-data-control.json", false);
+        checkFile(Paths.get(outputPath + "/test-data-control.json"), false);
     }
 
     @Test
     public void testGenerateOperationBodyWithJsonTestData() throws Exception {
-        File output = Files.createTempDirectory("test").toFile();
+        File output = Files.createTempDirectory("test").toFile().getCanonicalFile();
         output.deleteOnExit();
-        String outputPath = output.getCanonicalPath().replace('\\', '/');
+        String outputPath = output.getAbsolutePath().replace('\\', '/');
 
         OpenAPI openAPI = new OpenAPIParser()
                 .readLocation("src/test/resources/3_0/petstore.yaml", null, new ParseOptions()).getOpenAPI();
         codegen.setOutputDir(output.getAbsolutePath());
 
-        ClientOpts opts = new ClientOpts();
-        opts.getProperties().put(CXFExtServerFeatures.GENERATE_OPERATION_BODY, "true");
-        opts.getProperties().put(CXFServerFeatures.LOAD_TEST_DATA_FROM_FILE, "true");
+        codegen.additionalProperties().put(CXFExtServerFeatures.GENERATE_OPERATION_BODY, "true");
+        codegen.additionalProperties().put(CXFServerFeatures.LOAD_TEST_DATA_FROM_FILE, "true");
 
         ClientOptInput input = new ClientOptInput();
-        input.setOpenAPI(openAPI);
-        input.setConfig(codegen);
-        input.setOpts(opts);
+        input.openAPI(openAPI);
+        input.config(codegen);
 
-        MockDefaultGenerator generator = new MockDefaultGenerator();
+        DefaultGenerator generator = new DefaultGenerator();
         generator.opts(input).generate();
 
         String reInitCache = "(?s)(?m)\\{\\s+" + "try \\{\\s+"
@@ -708,7 +437,7 @@ public class JavaJAXRSCXFExtServerCodegenTest {
         String reGetPetById = "(?s)(?m)public Pet getPetById\\(Long petId\\) \\{.*" // split
                 + "try \\{\\s*" // split
                 + "Pet response = cache\\.getObject\\(\"/getPetById/response\", Pet\\.class\\);";
-        checkFile(generator, outputPath + "/src/main/java/org/openapitools/api/impl/PetApiServiceImpl.java", true,
+        checkFile(Paths.get(outputPath + "/src/main/java/org/openapitools/api/impl/PetApiServiceImpl.java"), true,
                 reInitCache, reGetPetById);
 
         reInitCache = "(?s)(?m)public static void beforeClass\\(\\) throws Exception \\{\\s+"
@@ -718,12 +447,12 @@ public class JavaJAXRSCXFExtServerCodegenTest {
                 + "\\.child\\(\"/org\\.openapitools\\.api/PetApi\"\\);";
         String reAddPetTest = "public void addPetTest\\(\\) throws Exception \\{\\s+"
                 + "Pet pet = cache\\.getObject\\(\"/addPet/pet\", Pet\\.class\\);";
-        checkFile(generator, outputPath + "/src/test/java/org/openapitools/api/PetApiTest.java", true, reInitCache,
+        checkFile(Paths.get(outputPath + "/src/test/java/org/openapitools/api/PetApiTest.java"), true, reInitCache,
                 reAddPetTest);
 
-        checkFile(generator, outputPath + "/src/main/resources/test-data.json", true);
+        checkFile(Paths.get(outputPath + "/src/main/resources/test-data.json"), true);
 
-        checkFile(generator, outputPath + "/test-data-control.json", true);
+        checkFile(Paths.get(outputPath + "/test-data-control.json"), true);
     }
 
     @Test
@@ -783,8 +512,8 @@ public class JavaJAXRSCXFExtServerCodegenTest {
         assertNull(additionalProperties.get(AbstractJavaCodegen.JAVA8_MODE));
         assertNull(additionalProperties.get(AbstractJavaCodegen.SUPPORT_ASYNC));
         assertEquals(additionalProperties.get(AbstractJavaCodegen.SUPPORT_JAVA6), Boolean.FALSE);
-        assertEquals(additionalProperties.get(AbstractJavaCodegen.USE_NULL_FOR_UNKNOWN_ENUM_VALUE), false);
         assertEquals(additionalProperties.get(AbstractJavaCodegen.WITH_XML), false);
+        assertEquals(additionalProperties.get(AbstractJavaCodegen.OPENAPI_NULLABLE), true);
         // Options processed by AbstractJavaJAXRSServerCodegen
         assertNull(additionalProperties.get(CodegenConstants.IMPL_FOLDER));
         assertEquals(additionalProperties.get(BeanValidationFeatures.USE_BEANVALIDATION), Boolean.TRUE);
@@ -834,4 +563,5 @@ public class JavaJAXRSCXFExtServerCodegenTest {
         assertEquals(additionalProperties.get(CodegenConstants.API_PACKAGE), "xx.yyyyyyyy.api");
         assertEquals(codegen.getInvokerPackage(), "xx.yyyyyyyy.invoker");
     }
+
 }

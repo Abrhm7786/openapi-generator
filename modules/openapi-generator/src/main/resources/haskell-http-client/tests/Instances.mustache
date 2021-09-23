@@ -1,9 +1,10 @@
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-unused-matches #-}
 
 module Instances where
 
 import {{baseModule}}.Model
-import {{baseModule}}.Core
+import {{baseModule}}.Core{{#customTestInstanceModule}}
+import {{.}} (){{/customTestInstanceModule}}
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as BL
@@ -71,7 +72,7 @@ instance Arbitrary A.Value where
       sizedObject n =
         liftM (A.object . map mapF) $
         replicateM n $ (,) <$> (arbitrary :: Gen String) <*> simpleAndArrays
-    
+
 -- | Checks if a given list has no duplicates in _O(n log n)_.
 hasNoDups
   :: (Ord a)
@@ -87,23 +88,41 @@ hasNoDups = go Set.empty
 instance ApproxEq TI.Day where
   (=~) = (==)
 
+arbitraryReduced :: Arbitrary a => Int -> Gen a
+arbitraryReduced n = resize (n `div` 2) arbitrary
+
+arbitraryReducedMaybe :: Arbitrary a => Int -> Gen (Maybe a)
+arbitraryReducedMaybe 0 = elements [Nothing]
+arbitraryReducedMaybe n = arbitraryReduced n
+
+arbitraryReducedMaybeValue :: Int -> Gen (Maybe A.Value)
+arbitraryReducedMaybeValue 0 = elements [Nothing]
+arbitraryReducedMaybeValue n = do
+  generated <- arbitraryReduced n
+  if generated == Just A.Null
+    then return Nothing
+    else return generated
+
 -- * Models
- 
+
 {{#models}}
 {{#model}}
 {{^isEnum}}
 instance Arbitrary {{classname}} where
-  arbitrary =
-    {{#isAlias}}{{classname}} <$> arbitrary{{/isAlias}}{{^isAlias}}{{^hasVars}}
-    pure {{/hasVars}}{{classname}}
-    {{#hasVars}}  <$>{{/hasVars}} {{#vars}}arbitrary -- {{name}} :: {{^required}}Maybe {{/required}}{{dataType}}
-    {{#hasMore}}  <*> {{/hasMore}}{{/vars}}{{/isAlias}}
+  arbitrary = sized gen{{classname}}
+
+gen{{classname}} :: Int -> Gen {{classname}}
+gen{{classname}} n =
+  {{#isAlias}}{{classname}} <$> arbitrary{{/isAlias}}{{^isAlias}}{{^hasVars}}
+  pure {{/hasVars}}{{classname}}
+  {{#hasVars}}  <$>{{/hasVars}} {{#vars}}{{#required}}{{#isPrimitiveType}}arbitrary{{/isPrimitiveType}}{{^isPrimitiveType}}arbitraryReduced n{{/isPrimitiveType}}{{/required}}{{^required}}{{^vendorExtensions.x-is-maybe-value}}arbitraryReducedMaybe n{{/vendorExtensions.x-is-maybe-value}}{{#vendorExtensions.x-is-maybe-value}}arbitraryReducedMaybeValue n{{/vendorExtensions.x-is-maybe-value}}{{/required}} -- {{name}} :: {{^required}}Maybe {{/required}}{{{vendorExtensions.x-data-type}}}
+  {{^-last}}  <*> {{/-last}}{{/vars}}{{/isAlias}}
 {{/isEnum}}
 {{/model}}
 {{/models}}
 
 
 {{#x-allUniqueParams}}{{#x-enum}}
-instance Arbitrary {{{x-paramNameType}}} where
+instance Arbitrary {{{x-param-name-type}}} where
   arbitrary = arbitraryBoundedEnum
 {{/x-enum}}{{/x-allUniqueParams}}

@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Map;
 import feign.*;
 
-
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen")
 public interface AnotherFakeApi extends ApiClient.Api {
 
 
   /**
    * To test special tags
    * To test special tags and operation ID starting with number
-   * @param body client model (required)
+   * @param client client model (required)
    * @return Client
    */
   @RequestLine("PATCH /another-fake/dummy")
@@ -26,5 +26,5 @@ public interface AnotherFakeApi extends ApiClient.Api {
     "Content-Type: application/json",
     "Accept: application/json",
   })
-  Client call123testSpecialTags(Client body);
+  Client call123testSpecialTags(Client client);
 }

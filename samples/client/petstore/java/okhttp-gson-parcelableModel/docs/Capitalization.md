@@ -1,7 +1,10 @@
 
+
 # Capitalization
 
+
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **smallCamel** | **String** |  |  [optional]
@@ -11,5 +14,9 @@ Name | Type | Description | Notes
 **scAETHFlowPoints** | **String** |  |  [optional]
 **ATT_NAME** | **String** | Name of the pet  |  [optional]
 
+
+## Implemented Interfaces
+
+* Parcelable
 
 

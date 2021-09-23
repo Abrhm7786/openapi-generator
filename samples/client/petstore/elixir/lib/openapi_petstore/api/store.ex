@@ -13,7 +13,7 @@ defmodule OpenapiPetstore.Api.Store do
 
   @doc """
   Delete purchase order by ID
-  For valid response try integer IDs with value &lt; 1000. Anything above 1000 or nonintegers will generate API errors
+  For valid response try integer IDs with value < 1000. Anything above 1000 or nonintegers will generate API errors
 
   ## Parameters
 
@@ -22,8 +22,8 @@ defmodule OpenapiPetstore.Api.Store do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %{}} on success
-  {:error, info} on failure
+  {:ok, nil} on success
+  {:error, Tesla.Env.t} on failure
   """
   @spec delete_order(Tesla.Env.client, String.t, keyword()) :: {:ok, nil} | {:error, Tesla.Env.t}
   def delete_order(connection, order_id, _opts \\ []) do
@@ -32,7 +32,10 @@ defmodule OpenapiPetstore.Api.Store do
     |> url("/store/order/#{order_id}")
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(false)
+    |> evaluate_response([
+      { 400, false},
+      { 404, false}
+    ])
   end
 
   @doc """
@@ -46,7 +49,7 @@ defmodule OpenapiPetstore.Api.Store do
   ## Returns
 
   {:ok, %{}} on success
-  {:error, info} on failure
+  {:error, Tesla.Env.t} on failure
   """
   @spec get_inventory(Tesla.Env.client, keyword()) :: {:ok, map()} | {:error, Tesla.Env.t}
   def get_inventory(connection, _opts \\ []) do
@@ -55,12 +58,14 @@ defmodule OpenapiPetstore.Api.Store do
     |> url("/store/inventory")
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode()
+    |> evaluate_response([
+      { 200, %{}}
+    ])
   end
 
   @doc """
   Find purchase order by ID
-  For valid response try integer IDs with value &lt;&#x3D; 5 or &gt; 10. Other values will generated exceptions
+  For valid response try integer IDs with value <= 5 or > 10. Other values will generated exceptions
 
   ## Parameters
 
@@ -69,17 +74,21 @@ defmodule OpenapiPetstore.Api.Store do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %OpenapiPetstore.Model.Order{}} on success
-  {:error, info} on failure
+  {:ok, OpenapiPetstore.Model.Order.t} on success
+  {:error, Tesla.Env.t} on failure
   """
-  @spec get_order_by_id(Tesla.Env.client, integer(), keyword()) :: {:ok, OpenapiPetstore.Model.Order.t} | {:error, Tesla.Env.t}
+  @spec get_order_by_id(Tesla.Env.client, integer(), keyword()) :: {:ok, nil} | {:ok, OpenapiPetstore.Model.Order.t} | {:error, Tesla.Env.t}
   def get_order_by_id(connection, order_id, _opts \\ []) do
     %{}
     |> method(:get)
     |> url("/store/order/#{order_id}")
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(%OpenapiPetstore.Model.Order{})
+    |> evaluate_response([
+      { 200, %OpenapiPetstore.Model.Order{}},
+      { 400, false},
+      { 404, false}
+    ])
   end
 
   @doc """
@@ -92,10 +101,10 @@ defmodule OpenapiPetstore.Api.Store do
   - opts (KeywordList): [optional] Optional parameters
   ## Returns
 
-  {:ok, %OpenapiPetstore.Model.Order{}} on success
-  {:error, info} on failure
+  {:ok, OpenapiPetstore.Model.Order.t} on success
+  {:error, Tesla.Env.t} on failure
   """
-  @spec place_order(Tesla.Env.client, OpenapiPetstore.Model.Order.t, keyword()) :: {:ok, OpenapiPetstore.Model.Order.t} | {:error, Tesla.Env.t}
+  @spec place_order(Tesla.Env.client, OpenapiPetstore.Model.Order.t, keyword()) :: {:ok, nil} | {:ok, OpenapiPetstore.Model.Order.t} | {:error, Tesla.Env.t}
   def place_order(connection, order, _opts \\ []) do
     %{}
     |> method(:post)
@@ -103,6 +112,9 @@ defmodule OpenapiPetstore.Api.Store do
     |> add_param(:body, :body, order)
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
-    |> decode(%OpenapiPetstore.Model.Order{})
+    |> evaluate_response([
+      { 200, %OpenapiPetstore.Model.Order{}},
+      { 400, false}
+    ])
   end
 end

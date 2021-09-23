@@ -6,6 +6,8 @@
     <packaging>war</packaging>
     <name>jaxrs-resteasy-eap-java8-server</name>
     <version>1.0.0</version>
+
+
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
         <plugins>
@@ -148,9 +150,9 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.6.3</version>
+            <version>2.9.9</version>
         </dependency>
-        
+
     </dependencies>
     <repositories>
         <repository>

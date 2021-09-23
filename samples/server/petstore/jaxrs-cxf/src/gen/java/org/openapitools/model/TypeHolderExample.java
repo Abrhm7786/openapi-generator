@@ -7,13 +7,6 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 
 import io.swagger.annotations.ApiModelProperty;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TypeHolderExample  {
@@ -24,6 +17,9 @@ public class TypeHolderExample  {
   @ApiModelProperty(example = "1.234", required = true, value = "")
   @Valid
   private BigDecimal numberItem;
+
+  @ApiModelProperty(example = "1.234", required = true, value = "")
+  private Float floatItem;
 
   @ApiModelProperty(example = "-2", required = true, value = "")
   private Integer integerItem;
@@ -68,6 +64,25 @@ public class TypeHolderExample  {
 
   public TypeHolderExample numberItem(BigDecimal numberItem) {
     this.numberItem = numberItem;
+    return this;
+  }
+
+ /**
+   * Get floatItem
+   * @return floatItem
+  **/
+  @JsonProperty("float_item")
+  @NotNull
+  public Float getFloatItem() {
+    return floatItem;
+  }
+
+  public void setFloatItem(Float floatItem) {
+    this.floatItem = floatItem;
+  }
+
+  public TypeHolderExample floatItem(Float floatItem) {
+    this.floatItem = floatItem;
     return this;
   }
 
@@ -141,6 +156,7 @@ public class TypeHolderExample  {
     
     sb.append("    stringItem: ").append(toIndentedString(stringItem)).append("\n");
     sb.append("    numberItem: ").append(toIndentedString(numberItem)).append("\n");
+    sb.append("    floatItem: ").append(toIndentedString(floatItem)).append("\n");
     sb.append("    integerItem: ").append(toIndentedString(integerItem)).append("\n");
     sb.append("    boolItem: ").append(toIndentedString(boolItem)).append("\n");
     sb.append("    arrayItem: ").append(toIndentedString(arrayItem)).append("\n");
@@ -152,7 +168,7 @@ public class TypeHolderExample  {
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).
    */
-  private static String toIndentedString(java.lang.Object o) {
+  private static String toIndentedString(Object o) {
     if (o == null) {
       return "null";
     }

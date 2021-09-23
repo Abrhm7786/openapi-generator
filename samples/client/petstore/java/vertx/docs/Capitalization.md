@@ -1,7 +1,10 @@
 
+
 # Capitalization
 
+
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **smallCamel** | **String** |  |  [optional]

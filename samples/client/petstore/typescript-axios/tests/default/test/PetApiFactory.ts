@@ -2,10 +2,11 @@ import { expect } from "chai";
 import {
   PetApiFactory,
   Pet,
+  PetStatusEnum,
   Category
-} from "@swagger/typescript-axios-petstore";
-import { Configuration } from "@swagger/typescript-axios-petstore";
-import axios, {AxiosInstance, AxiosResponse} from "axios";
+} from "@openapitools/typescript-axios-petstore";
+import { Configuration } from "@openapitools/typescript-axios-petstore";
+import axios, {AxiosInstance, AxiosResponse} from "@openapitools/typescript-axios-petstore/node_modules/axios";
 
 let config: Configuration;
 
@@ -106,7 +107,7 @@ function createTestFixture(ts = Date.now()) {
     name: `pet${ts}`,
     category: category,
     photoUrls: ["http://foo.bar.com/1", "http://foo.bar.com/2"],
-    status: Pet.StatusEnum.Available,
+    status: PetStatusEnum.Available,
     tags: []
   };
 

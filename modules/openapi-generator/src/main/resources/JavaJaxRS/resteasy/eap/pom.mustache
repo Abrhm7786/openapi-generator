@@ -6,6 +6,15 @@
     <packaging>war</packaging>
     <name>{{artifactId}}</name>
     <version>{{artifactVersion}}</version>
+
+{{#parentOverridden}}
+    <parent>
+        <groupId>{{parentGroupId}}</groupId>
+        <artifactId>{{parentArtifactId}}</artifactId>
+        <version>{{parentVersion}}</version>
+    </parent>
+{{/parentOverridden}}
+
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
         <plugins>
@@ -156,17 +165,17 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-joda</artifactId>
-            <version>2.6.3</version>
+            <version>2.9.9</version>
         </dependency>
 {{/java8}}
 {{#java8}}
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.6.3</version>
+            <version>2.9.9</version>
         </dependency>
 {{/java8}}
-        
+
     </dependencies>
     <repositories>
         <repository>

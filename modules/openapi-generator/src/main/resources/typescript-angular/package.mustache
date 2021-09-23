@@ -8,43 +8,26 @@
     "openapi-generator"
   ],
   "license": "Unlicense",
-  {{#useNgPackagr}}
   "scripts": {
     "build": "ng-packagr -p ng-package.json"
   },
-  {{/useNgPackagr}}
-  {{^useNgPackagr}}
-  "main": "dist/index.js",
-  "module": "dist/index.js",  
-  "typings": "dist/index.d.ts",
-  "scripts": {
-    "build": "ngc && npm pack"
-  },
-  {{/useNgPackagr}}
   "peerDependencies": {
     "@angular/core": "^{{ngVersion}}",
-    "@angular/http": "^{{ngVersion}}",
-    "@angular/common": "^{{ngVersion}}",
-    "@angular/compiler": "^{{ngVersion}}",
-    "core-js": "^2.4.0",
-    "reflect-metadata": "^0.1.3",
     "rxjs": "^{{rxjsVersion}}"
   },
   "devDependencies": {
-    "@angular/compiler-cli": "^{{ngVersion}}",
-    "@angular/core": "^{{ngVersion}}",
-    "@angular/http": "^{{ngVersion}}",
     "@angular/common": "^{{ngVersion}}",
     "@angular/compiler": "^{{ngVersion}}",
-    "@angular/platform-browser": "^{{ngVersion}}",{{#useNgPackagr}}
-    "ng-packagr": "^{{ngPackagrVersion}}",{{#useOldNgPackagr}}{{/useOldNgPackagr}}{{^useOldNgPackagr}}
-    "tsickle": "^{{tsickleVersion}}",{{/useOldNgPackagr}}{{/useNgPackagr}}
+    "@angular/compiler-cli": "^{{ngVersion}}",
+    "@angular/core": "^{{ngVersion}}",
+    "@angular/platform-browser": "^{{ngVersion}}",
+    "ng-packagr": "^{{ngPackagrVersion}}",
     "reflect-metadata": "^0.1.3",
     "rxjs": "^{{rxjsVersion}}",
-    "zone.js": "^{{zonejsVersion}}",
-    "typescript": "{{{tsVersion}}}"
-  }{{#npmRepository}},{{/npmRepository}}
-{{#npmRepository}}
+    "tsickle": "^{{tsickleVersion}}",
+    "typescript": "{{{tsVersion}}}",
+    "zone.js": "^{{zonejsVersion}}"
+  }{{#npmRepository}},
   "publishConfig": {
     "registry": "{{{npmRepository}}}"
   }

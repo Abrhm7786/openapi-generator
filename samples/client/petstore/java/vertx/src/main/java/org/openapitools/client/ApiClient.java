@@ -2,15 +2,18 @@ package org.openapitools.client;
 
 import org.openapitools.client.auth.Authentication;
 import org.openapitools.client.auth.HttpBasicAuth;
+import org.openapitools.client.auth.HttpBearerAuth;
 import org.openapitools.client.auth.ApiKeyAuth;
 import org.openapitools.client.auth.OAuth;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.openapitools.jackson.nullable.JsonNullableModule;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
@@ -26,6 +29,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
+import java.time.OffsetDateTime;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.function.Consumer;
@@ -34,8 +38,8 @@ import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toMap;
 
-
-public class ApiClient {
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen")
+public class ApiClient extends JavaTimeFormatter {
 
     private static final Pattern CONTENT_DISPOSITION_PATTERN = Pattern.compile("filename=['\"]?([^'\"\\s]+)['\"]?");
     private static final OpenOptions FILE_DOWNLOAD_OPTIONS = new OpenOptions().setCreate(true).setTruncateExisting(true);
@@ -45,11 +49,13 @@ public class ApiClient {
     private final String identifier;
 
     private MultiMap defaultHeaders = MultiMap.caseInsensitiveMultiMap();
+    private MultiMap defaultCookies = MultiMap.caseInsensitiveMultiMap();
     private Map<String, Authentication> authentications;
     private String basePath = "http://petstore.swagger.io:80/v2";
     private DateFormat dateFormat;
     private ObjectMapper objectMapper;
     private String downloadsDir = "";
+    private int timeout = -1;
 
     public ApiClient(Vertx vertx, JsonObject config) {
         Objects.requireNonNull(vertx, "Vertx must not be null");
@@ -74,6 +80,8 @@ public class ApiClient {
         this.objectMapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.setDateFormat(dateFormat);
+        JsonNullableModule jnm = new JsonNullableModule();
+        this.objectMapper.registerModule(jnm);
 
         // Setup authentications (key: authentication name, value: authentication).
         this.authentications = new HashMap<>();
@@ -89,6 +97,7 @@ public class ApiClient {
         this.downloadsDir = config.getString("downloadsDir", this.downloadsDir);
         this.config = config;
         this.identifier = UUID.randomUUID().toString();
+        this.timeout = config.getInteger("timeout", -1);
     }
 
     public Vertx getVertx() {
@@ -106,10 +115,10 @@ public class ApiClient {
 
     public synchronized WebClient getWebClient() {
         String webClientIdentifier = "web-client-" + identifier;
-        WebClient webClient = Vertx.currentContext().get(webClientIdentifier);
+        WebClient webClient = this.vertx.getOrCreateContext().get(webClientIdentifier);
         if (webClient == null) {
             webClient = buildWebClient(vertx, config);
-            Vertx.currentContext().put(webClientIdentifier, webClient);
+            this.vertx.getOrCreateContext().put(webClientIdentifier, webClient);
         }
         return webClient;
     }
@@ -141,6 +150,15 @@ public class ApiClient {
         return this;
     }
 
+    public MultiMap getDefaultCookies() {
+        return defaultHeaders;
+    }
+
+    public ApiClient addDefaultCookie(String key, String value) {
+        defaultCookies.add(key, value);
+        return this;
+    }
+
     /**
      * Get authentications (key: authentication name, value: authentication).
      *
@@ -158,6 +176,20 @@ public class ApiClient {
      */
     public Authentication getAuthentication(String authName) {
         return authentications.get(authName);
+    }
+
+    /**
+     * Helper method to set access token for the first Bearer authentication.
+     * @param bearerToken Bearer token
+     */
+    public ApiClient setBearerToken(String bearerToken) {
+        for (Authentication auth : authentications.values()) {
+            if (auth instanceof HttpBearerAuth) {
+                ((HttpBearerAuth) auth).setBearerToken(bearerToken);
+                return this;
+            }
+        }
+        throw new RuntimeException("No Bearer authentication configured!");
     }
 
     /**
@@ -256,6 +288,8 @@ public class ApiClient {
             return "";
         } else if (param instanceof Date) {
             return formatDate((Date) param);
+        } else if (param instanceof OffsetDateTime) {
+            return formatOffsetDateTime((OffsetDateTime) param);
         } else if (param instanceof Collection) {
             StringBuilder b = new StringBuilder();
             for (Object o : (Collection) param) {
@@ -396,7 +430,11 @@ public class ApiClient {
             AsyncFile file = (AsyncFile) body;
             request.sendStream(file, responseHandler);
         } else {
-            request.sendJson(body, responseHandler);
+            try {
+                request.sendBuffer(Buffer.buffer(this.objectMapper.writeValueAsBytes(body)), responseHandler);
+            } catch (JsonProcessingException jsonProcessingException) {
+                responseHandler.handle(Future.failedFuture(jsonProcessingException));
+            }
         }
     }
 
@@ -409,20 +447,22 @@ public class ApiClient {
      * @param queryParams The query parameters
      * @param body The request body object
      * @param headerParams The header parameters
+     * @param cookieParams The cookie parameters
      * @param formParams The form parameters
      * @param accepts The request's Accept headers
      * @param contentTypes The request's Content-Type headers
      * @param authNames The authentications to apply
+     * @param authInfo The call specific auth override
      * @param returnType The return type into which to deserialize the response
      * @param resultHandler The asynchronous response handler
      */
     public <T> void invokeAPI(String path, String method, List<Pair> queryParams, Object body, MultiMap headerParams,
-                              Map<String, Object> formParams, String[] accepts, String[] contentTypes, String[] authNames,
+                              MultiMap cookieParams, Map<String, Object> formParams, String[] accepts, String[] contentTypes, String[] authNames, AuthInfo authInfo,
                               TypeReference<T> returnType, Handler<AsyncResult<T>> resultHandler) {
 
-        updateParamsForAuth(authNames, queryParams, headerParams);
+        updateParamsForAuth(authNames, authInfo, queryParams, headerParams, cookieParams);
 
-        if (accepts != null) {
+        if (accepts != null && accepts.length > 0) {
             headerParams.add(HttpHeaders.ACCEPT, selectHeaderAccept(accepts));
         }
 
@@ -432,6 +472,7 @@ public class ApiClient {
 
         HttpMethod httpMethod = HttpMethod.valueOf(method);
         HttpRequest<Buffer> request = getWebClient().requestAbs(httpMethod, basePath + path);
+        request.timeout(this.timeout);
 
         if (httpMethod == HttpMethod.PATCH) {
             request.putHeader("X-HTTP-Method-Override", "PATCH");
@@ -455,6 +496,9 @@ public class ApiClient {
             }
         });
 
+        final MultiMap cookies = MultiMap.caseInsensitiveMultiMap().addAll(cookieParams).addAll(defaultCookies);
+        request.putHeader("Cookie", buildCookieHeader(cookies));
+
         Handler<AsyncResult<HttpResponse<Buffer>>> responseHandler = buildResponseHandler(returnType, resultHandler);
         if (body != null) {
             sendBody(request, responseHandler, body);
@@ -465,6 +509,18 @@ public class ApiClient {
         } else {
             request.send(responseHandler);
         }
+    }
+
+    private String buildCookieHeader(MultiMap cookies) {
+      final StringBuilder cookieValue = new StringBuilder();
+      String delimiter = "";
+      for (final Map.Entry<String, String> entry : cookies.entries()) {
+          if (entry.getValue() != null) {
+              cookieValue.append(String.format("%s%s=%s", delimiter, entry.getKey(), entry.getValue()));
+              delimiter = "; ";
+          }
+      }
+      return cookieValue.toString();
     }
 
     /**
@@ -548,20 +604,21 @@ public class ApiClient {
                     if (httpResponse.statusCode() == 204 || returnType == null) {
                         result = Future.succeededFuture(null);
                     } else {
-                        T resultContent;
+                        T resultContent = null;
                         if ("byte[]".equals(returnType.getType().toString())) {
                             resultContent = (T) httpResponse.body().getBytes();
+                            result = Future.succeededFuture(resultContent);
                         } else if (AsyncFile.class.equals(returnType.getType())) {
                             handleFileDownload(httpResponse, handler);
                             return;
                         } else {
                             try {
-                                resultContent = Json.mapper.readValue(httpResponse.bodyAsString(), returnType);
+                                resultContent = this.objectMapper.readValue(httpResponse.bodyAsString(), returnType);
+                                result = Future.succeededFuture(resultContent);
                             } catch (Exception e) {
-                                throw new DecodeException("Failed to decode:" + e.getMessage(), e);
+                                result =  ApiException.fail(new DecodeException("Failed to decode:" + e.getMessage(), e));
                             }
                         }
-                        result = Future.succeededFuture(resultContent);
                     }
                 } else {
                     result = ApiException.fail(httpResponse.statusMessage(), httpResponse.statusCode(), httpResponse.headers(), httpResponse.bodyAsString());
@@ -596,11 +653,72 @@ public class ApiClient {
      *
      * @param authNames The authentications to apply
      */
-    protected void updateParamsForAuth(String[] authNames, List<Pair> queryParams, MultiMap headerParams) {
+    protected void updateParamsForAuth(String[] authNames, AuthInfo authInfo, List<Pair> queryParams, MultiMap headerParams, MultiMap cookieParams) {
         for (String authName : authNames) {
-            Authentication auth = authentications.get(authName);
+            Authentication auth;
+            if (authInfo != null && authInfo.authentications.containsKey(authName)) {
+                auth = authInfo.authentications.get(authName);
+            } else {
+                auth = authentications.get(authName);
+            }
             if (auth == null) throw new RuntimeException("Authentication undefined: " + authName);
-            auth.applyToParams(queryParams, headerParams);
+            auth.applyToParams(queryParams, headerParams, cookieParams);
+        }
+    }
+
+    public static class AuthInfo {
+
+        private final Map<String, Authentication> authentications = new LinkedHashMap<>();
+
+        public void addApi_keyAuthentication(String apikey, String apiKeyPrefix) {
+           ApiKeyAuth auth = new ApiKeyAuth("header","api_key");
+           auth.setApiKey(apikey);
+           auth.setApiKeyPrefix(apiKeyPrefix);
+           authentications.put("api_key", auth);
+        }
+
+        public void addApi_key_queryAuthentication(String apikey, String apiKeyPrefix) {
+           ApiKeyAuth auth = new ApiKeyAuth("query","api_key_query");
+           auth.setApiKey(apikey);
+           auth.setApiKeyPrefix(apiKeyPrefix);
+           authentications.put("api_key_query", auth);
+        }
+
+        public void addHttp_basic_testAuthentication(String username, String password) {
+            HttpBasicAuth auth = new HttpBasicAuth();
+            auth.setUsername(username);
+            auth.setPassword(password);
+            authentications.put("http_basic_test", auth);
+        }
+
+        public void addPetstore_authAuthentication(String accessToken) {
+           OAuth auth = new OAuth();
+           auth.setAccessToken(accessToken);
+           authentications.put("petstore_auth", auth);
+        }
+
+        public static AuthInfo forApi_keyAuthentication(String apikey, String apiKeyPrefix) {
+            AuthInfo authInfo = new AuthInfo();
+            authInfo.addApi_keyAuthentication(apikey, apiKeyPrefix);
+            return authInfo;
+        }
+
+        public static AuthInfo forApi_key_queryAuthentication(String apikey, String apiKeyPrefix) {
+            AuthInfo authInfo = new AuthInfo();
+            authInfo.addApi_key_queryAuthentication(apikey, apiKeyPrefix);
+            return authInfo;
+        }
+
+        public static AuthInfo forHttp_basic_test(String username, String password) {
+            AuthInfo authInfo = new AuthInfo();
+            authInfo.addHttp_basic_testAuthentication(username, password);
+            return authInfo;
+        }
+
+        public static AuthInfo forPetstore_authAuthentication(String accessToken) {
+            AuthInfo authInfo = new AuthInfo();
+            authInfo.addPetstore_authAuthentication(accessToken);
+            return authInfo;
         }
     }
 }

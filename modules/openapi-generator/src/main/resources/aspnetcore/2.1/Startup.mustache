@@ -12,6 +12,9 @@ using Newtonsoft.Json.Serialization;{{#useSwashbuckle}}
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using {{packageName}}.Filters;{{/useSwashbuckle}}
+using {{packageName}}.Authentication;
+using {{packageName}}.Formatters;
+using Microsoft.AspNetCore.Authorization;
 
 namespace {{packageName}}
 {
@@ -40,47 +43,66 @@ namespace {{packageName}}
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
+{{#authMethods}}
+{{#isApiKey}}
+            services.AddTransient<IAuthorizationHandler, ApiKeyRequirementHandler>();
+            services.AddAuthorization(authConfig =>
+            {
+                authConfig.AddPolicy("{{name}}",
+                    policyBuilder => policyBuilder
+                        .AddRequirements(new ApiKeyRequirement(new[] { "my-secret-key" },"{{name}}")));
+            });
+{{/isApiKey}}
+{{/authMethods}}
+
             // Add framework services.
             services
-                .AddMvc()
-                .SetCompatibilityVersion                (CompatibilityVersion.Version_2_1)
-                .AddJsonOptions(opts =>
+                .AddMvc(opts => {
+                    {{^useDefaultRouting}}opts.EnableEndpointRouting = false;{{/useDefaultRouting}}
+                    opts.InputFormatters.Insert(0, new InputFormatterStream());
+                    })
+                {{#compatibilityVersion}}
+                .SetCompatibilityVersion(CompatibilityVersion.{{.}})
+                {{/compatibilityVersion}}
+                .{{#useNewtonsoft}}AddNewtonsoftJson{{/useNewtonsoft}}{{^useNewtonsoft}}AddJsonOptions{{/useNewtonsoft}}(opts =>
                 {
                     opts.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                     opts.SerializerSettings.Converters.Add(new StringEnumConverter
                     {
-                        CamelCaseText = true
+                        {{#useNewtonsoft}}NamingStrategy = new CamelCaseNamingStrategy(){{/useNewtonsoft}}{{^useNewtonsoft}}CamelCaseText = true{{/useNewtonsoft}}
                     });
-                });{{#useSwashbuckle}}
+                });
+            {{#useSwashbuckle}}
 
             services
                 .AddSwaggerGen(c =>
                 {
-                    c.SwaggerDoc("{{#version}}{{{version}}}{{/version}}{{^version}}v1{{/version}}", new Info
+                    c.SwaggerDoc("{{{version}}}{{^version}}v1{{/version}}", new Info
                     {
-                        Version = "{{#version}}{{{version}}}{{/version}}{{^version}}v1{{/version}}",
-                        Title = "{{#appName}}{{{appName}}}{{/appName}}{{^appName}}{{packageName}}{{/appName}}",
-                        Description = "{{#appName}}{{{appName}}}{{/appName}}{{^appName}}{{packageName}}{{/appName}} (ASP.NET Core 2.0)",
+                        Version = "{{{version}}}{{^version}}v1{{/version}}",
+                        Title = "{{{appName}}}{{^appName}}{{packageName}}{{/appName}}",
+                        Description = "{{{appName}}}{{^appName}}{{packageName}}{{/appName}} (ASP.NET Core {{aspnetCoreVersion}})",
                         Contact = new Contact()
                         {
-                           Name = "{{#infoName}}{{{infoName}}}{{/infoName}}{{^infoName}}OpenAPI-Generator Contributors{{/infoName}}",
-                           Url = "{{#infoUrl}}{{{infoUrl}}}{{/infoUrl}}{{^infoUrl}}https://github.com/openapitools/openapi-generator{{/infoUrl}}",
-                           Email = "{{#infoEmail}}{{{infoEmail}}}{{/infoEmail}}"
+                           Name = "{{{infoName}}}{{^infoName}}OpenAPI-Generator Contributors{{/infoName}}",
+                           Url = "{{{infoUrl}}}{{^infoUrl}}https://github.com/openapitools/openapi-generator{{/infoUrl}}",
+                           Email = "{{{infoEmail}}}"
                         },
-                        TermsOfService = "{{#termsOfService}}{{{termsOfService}}}{{/termsOfService}}"
+                        TermsOfService = "{{{termsOfService}}}"
                     });
                     c.CustomSchemaIds(type => type.FriendlyId(true));
                     c.DescribeAllEnumsAsStrings();
                     c.IncludeXmlComments($"{AppContext.BaseDirectory}{Path.DirectorySeparatorChar}{Assembly.GetEntryAssembly().GetName().Name}.xml");
                     {{#basePathWithoutHost}}
                     // Sets the basePath property in the Swagger document generated
-                    c.DocumentFilter<BasePathFilter>("{{{basePathWithoutHost}}}");
+                    c.DocumentFilter<BasePathFilter>("{{{.}}}");
                     {{/basePathWithoutHost}}
 
                     // Include DataAnnotation attributes on Controller Action parameters as Swagger validation rules (e.g required, pattern, ..)
                     // Use [ValidateModelState] on Actions to actually validate it in C# as well!
                     c.OperationFilter<GeneratePathParamsValidationFilter>();
-                });{{/useSwashbuckle}}
+                });
+            {{/useSwashbuckle}}
         }
 
         /// <summary>
@@ -101,13 +123,20 @@ namespace {{packageName}}
                 .UseSwaggerUI(c =>
                 {
                     //TODO: Either use the SwaggerGen generated Swagger contract (generated from C# classes)
-                    c.SwaggerEndpoint("/swagger/{{#version}}{{{version}}}{{/version}}{{^version}}v1{{/version}}/openapi.json", "{{#appName}}{{{appName}}}{{/appName}}{{^appName}}{{packageName}}{{/appName}}");
+                    c.SwaggerEndpoint("/swagger/{{{version}}}{{^version}}v1{{/version}}/openapi.json", "{{{appName}}}{{^appName}}{{packageName}}{{/appName}}");
 
                     //TODO: Or alternatively use the original Swagger contract that's included in the static files
-                    // c.SwaggerEndpoint("/openapi-original.json", "{{#appName}}{{{appName}}}{{/appName}}{{^appName}}{{packageName}}{{/appName}} Original");
+                    // c.SwaggerEndpoint("/openapi-original.json", "{{{appName}}}{{^appName}}{{packageName}}{{/appName}} Original");
                 }){{/useSwashbuckle}};
+            {{^useDefaultRouting}}
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+                });
+            {{/useDefaultRouting}}
 
-if (env.IsDevelopment())
+            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
